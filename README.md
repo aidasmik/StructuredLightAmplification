@@ -72,6 +72,14 @@ The figures are made by `Simulation_Code/readme_figures.py`.
 
 ![Iterative correction vs one-shot network](docs/nn_vs_iterative.png)
 
+On one and the same disk state, the iterative loops against the network (`Simulation_Code/iteration_curves.py`):
+SPGD with one camera, as in the slides, raises its own metric (image correlation) while the true
+field fidelity falls, because one intensity image does not see the phase; the two-camera response
+matrix reaches 0.83 / 0.67 after ~240 frames; the network reaches 0.96 / 0.90 from 2 frames
+(ceiling 0.99 / 0.95), Gaussian / LG01:
+
+![Fidelity against camera frames](Results/readme/iterations.png)
+
 The schematic is drawn in LaTeX/TikZ (`docs/nn_vs_iterative.tex`):
 ```
 cd docs && pdflatex nn_vs_iterative.tex && pdftocairo -png -r 170 -singlefile nn_vs_iterative.pdf nn_vs_iterative
@@ -268,6 +276,7 @@ The network steps need a CUDA GPU (developed on an RTX 2080 SUPER, 8 GB).
   memory-mapped through a one-time cache (`Results/<dataset>/cache/`), so 20 000 examples need ~2 GB
   of RAM. `Results/<18_nn|19_nn_wide|20_nn_real|21_nn_setup>/<name>/` (`training.png`, `history.csv`,
   `model.pt`).
+- `iteration_curves.py` – fidelity against camera frames for SPGD, the response matrix and the network on one disk state.
 - `readme_figures.py` – the figures of this README (layout, disk state, beam examples, one-shot correction).
 - `nn_eval.py` – Step 18: fresh disk states (same tolerances) through the exact plant (real LCOS model):
   uncorrected vs reference correction only vs one-shot network vs physics optimum (projections followed
