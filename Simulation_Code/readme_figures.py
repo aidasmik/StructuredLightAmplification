@@ -8,6 +8,7 @@ readme_figures.py - figures for the README: the modelled system as it is used in
                        nominal 300 W disk and the random state
     correction.png     the same state, one-shot network correction (Step 21 network, all lab
                        nuisances of setup 0): target, uncorrected, corrected
+    profiles.png       x and y intensity profiles of that output: target, uncorrected, corrected
 
 Usage:  NN_RANGE=setup python readme_figures.py [network name]      (needs the GPU and Step 21 results)
 Output: Results/readme/
@@ -131,6 +132,7 @@ rng = np.random.default_rng([3, 99])
 ps, sts = sysm.draw_state(rng, setup=0)                      # the same disk state, with the nuisances of setup 0
 T_pts = sysm.temperature_points(sts["T_mean"], rng); P_meas = ps["P"] * (1 + 0.01 * rng.standard_normal()); dop = sysm.doping_input(ps)
 fig, ax = plt.subplots(2, 5, figsize=(16, 7))
+outs = {}
 for t_id, tname in enumerate(nd.TARGETS):
     out0 = sysm.output(sysm.base[tname], sts, ps)
     near, far = sysm.frames(out0, ps)
@@ -139,6 +141,7 @@ for t_id, tname in enumerate(nd.TARGETS):
         corr = nt.full_correction(net(x), torch.as_tensor([t_id], device=nt.DEV), ref, a["formulation"], [0])[0].cpu().numpy()
     out1 = sysm.output(sysm.base[tname] + np.pad(corr, pad), sts, ps)
     tgt = sysm.targets[tname]
+    outs[tname] = (out0, out1, tgt)
     ax[t_id, 0].imshow(near, cmap="hot"); ax[t_id, 0].set_title(f"{tname}: near-field camera (input)", fontsize=9)
     ax[t_id, 1].imshow(far, cmap="hot"); ax[t_id, 1].set_title("far-field camera (input)", fontsize=9)
     ax[t_id, 2].imshow(corr, cmap="twilight", vmin=-np.pi, vmax=np.pi); ax[t_id, 2].set_title("network correction on the SLM", fontsize=9)
@@ -149,4 +152,24 @@ for t_id, tname in enumerate(nd.TARGETS):
 fig.suptitle(f"One-shot correction by the network ('{name}', Step 21) with gain, seed / mirror / SLM / camera errors of the setup\n"
              "output profiles through the beam centroid: x (cyan), y (green), solid = output, dashed = target")
 fig.tight_layout(h_pad=2.5); fig.savefig(os.path.join(OUT, "correction.png"), dpi=90); plt.close(fig)
+# ---- line profiles of the same outputs -------------------------------------------------------
+fig, ax = plt.subplots(2, 2, figsize=(11, 7), sharex=True)
+x = (np.arange(G.n) - G.n / 2) * G.dx * MM
+c = G.n // 2                                                 # cuts through the axis (the target's centre)
+for r, tname in enumerate(nd.TARGETS):
+    out0, out1, tgt = outs[tname]
+    norm = lambda f: np.abs(f) ** 2 / (np.abs(f) ** 2).sum()           # same power -> comparable heights
+    for j, (axis, cut) in enumerate((("x", lambda I: I[c, :]), ("y", lambda I: I[:, c]))):
+        a = ax[r, j]
+        a.fill_between(x, cut(norm(tgt)), color="0.85", label="target")
+        a.plot(x, cut(norm(out0)), color="C3", lw=1.4, label=f"uncorrected, F = {co.fidelity(out0, tgt):.2f}")
+        a.plot(x, cut(norm(out1)), color="C0", lw=1.8, label=f"one-shot corrected, F = {co.fidelity(out1, tgt):.2f}")
+        a.set_xlim(-4, 4); a.set_title(f"{'Gaussian' if tname == 'gaussian' else 'LG01 vortex'}: {axis} profile through the axis", fontsize=10)
+        a.set_ylabel("intensity (equal power)"); a.set_yticks([]); a.grid(alpha=0.3)
+        if j == 0:
+            a.legend(fontsize=8, loc="upper right")
+for a in ax[1]:
+    a.set_xlabel("position at the output [mm]")
+fig.suptitle("Output beam profiles: target, uncorrected and corrected by the network in one shot (same disk state and setup)")
+fig.tight_layout(); fig.savefig(os.path.join(OUT, "profiles.png"), dpi=110); plt.close(fig)
 print("saved", OUT)

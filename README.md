@@ -60,7 +60,22 @@ without iteration (output profiles as above, dashed = target):
 
 ![One-shot network correction](Results/readme/correction.png)
 
+The same outputs as line profiles through the axis, at equal power. The vortex shows the correction
+clearly; for the Gaussian most of the improvement is in the phase and the shape, which a cut along x
+or y shows only partly:
+
+![Output beam profiles](Results/readme/profiles.png)
+
 The figures are made by `Simulation_Code/readme_figures.py`.
+
+## Iterative correction vs. one-shot network
+
+![Iterative correction vs one-shot network](docs/nn_vs_iterative.png)
+
+The schematic is drawn in LaTeX/TikZ (`docs/nn_vs_iterative.tex`):
+```
+cd docs && pdflatex nn_vs_iterative.tex && pdftocairo -png -r 170 -singlefile nn_vs_iterative.pdf nn_vs_iterative
+```
 
 ## Main results (Steps 18-21)
 
