@@ -1,0 +1,18 @@
+204 shards, 40000 rows (20000 examples), cache /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/20_nn_real_dataset/cache
+train rows 38000, validation rows 2000; device cuda; resnet, residual, inputs all
+label check: fidelity through reconstructed screens 0.500 vs stored optimum 0.498; reference correction alone 0.258, uncorrected 0.257
+initialised from ../Results/19_nn_wide/resnet_all/model.pt
+resnet with 0.90 M parameters
+epoch   0 [phys] loss 0.6366  val fidelity gaussian 0.555  LG01 0.379  (1945 s)
+epoch   1 [phys] loss 0.5657  val fidelity gaussian 0.588  LG01 0.410  (1941 s)
+epoch   2 [phys] loss 0.5414  val fidelity gaussian 0.604  LG01 0.425  (1922 s)
+epoch   3 [phys] loss 0.5295  val fidelity gaussian 0.618  LG01 0.437  (1858 s)
+epoch   4 [phys] loss 0.5230  val fidelity gaussian 0.626  LG01 0.442  (1852 s)
+epoch   5 [phys] loss 0.5167  val fidelity gaussian 0.626  LG01 0.448  (1910 s)
+epoch   6 [phys] loss 0.5102  val fidelity gaussian 0.636  LG01 0.450  (1848 s)
+epoch   7 [phys] loss 0.5062  val fidelity gaussian 0.635  LG01 0.456  (1963 s)
+epoch   8 [phys] loss 0.5026  val fidelity gaussian 0.641  LG01 0.459  (1901 s)
+epoch   9 [phys] loss 0.4997  val fidelity gaussian 0.642  LG01 0.460  (1963 s)
+epoch  10 [phys] loss 0.4995  val fidelity gaussian 0.643  LG01 0.461  (2273 s)
+epoch  11 [phys] loss 0.4987  val fidelity gaussian 0.644  LG01 0.461  (3132 s)
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/20_nn_real/resnet_ft

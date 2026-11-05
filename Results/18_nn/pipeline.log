@@ -1,0 +1,6 @@
+Sat Oct 31 11:53:50 PM EET 2026 waiting for the dataset
+Sun Nov  1 03:11:51 AM EET 2026 dataset complete: 100 shards
+Sun Nov  1 07:10:53 AM EET 2026 resnet_all trained
+Sun Nov  1 07:19:43 AM EET 2026 resnet_all evaluated
+Sun Nov  1 11:48:16 AM EET 2026 resnet_cams trained
+Sun Nov  1 12:07:05 PM EET 2026 ALL DONE

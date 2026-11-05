@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/home/aidas/ThinDiskLaser/Simulation/Simulation_Code/nn_eval.py", line 206, in <module>
+    main()
+  File "/home/aidas/ThinDiskLaser/Simulation/Simulation_Code/nn_eval.py", line 86, in main
+    nets = {n: load_model(n) for n in args.names}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aidas/ThinDiskLaser/Simulation/Simulation_Code/nn_eval.py", line 86, in <dictcomp>
+    nets = {n: load_model(n) for n in args.names}
+               ^^^^^^^^^^^^^
+  File "/home/aidas/ThinDiskLaser/Simulation/Simulation_Code/nn_eval.py", line 60, in load_model
+    ck = torch.load(os.path.join(RESULTS, name, "model.pt"), map_location=nt.DEV)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aidas/.venvs/thindisk/lib/python3.11/site-packages/torch/serialization.py", line 1530, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aidas/.venvs/thindisk/lib/python3.11/site-packages/torch/serialization.py", line 795, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aidas/.venvs/thindisk/lib/python3.11/site-packages/torch/serialization.py", line 776, in __init__
+    super().__init__(open(name, mode))  # noqa: SIM115
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/20_nn_real/resnet_all/model.pt'

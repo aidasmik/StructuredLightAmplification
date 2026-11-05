@@ -1,0 +1,15 @@
+Mon Nov  2 08:44:22 PM EET 2026 generating 20000 examples
+Tue Nov  3 03:27:55 AM EET 2026 dataset complete: 204 shards
+Tue Nov  3 03:30:07 AM EET 2026 resnet_all trained
+Tue Nov  3 03:30:11 AM EET 2026 resnet_all evaluated
+Tue Nov  3 03:31:52 AM EET 2026 resnet_cams trained
+Tue Nov  3 03:31:56 AM EET 2026 ALL DONE
+Tue Nov  3 09:26:05 AM EET 2026 training (restart after the out-of-memory kill)
+Tue Nov  3 05:07:18 PM EET 2026 resnet_all trained
+Tue Nov  3 05:35:26 PM EET 2026 resnet_all evaluated
+Tue Nov  3 05:51:54 PM EET 2026 resnet_cams (real) stopped by hand: superseded by the fine-tune from the wide network
+Tue Nov  3 05:52:33 PM EET 2026 fine-tune from the wide network
+Wed Nov  4 12:41:09 AM EET 2026 resnet_ft trained
+Wed Nov  4 01:29:12 AM EET 2026 resnet_ft evaluated
+Wed Nov  4 02:03:06 AM EET 2026 wide re-evaluated
+Wed Nov  4 02:37:25 AM EET 2026 FOLLOWUP DONE

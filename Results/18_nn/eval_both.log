@@ -1,0 +1,30 @@
+state 0 gaussian: optimum 0.911 (projections) -> 0.979 (+100 gradient steps)
+state 0 LG01: optimum 0.606 (projections) -> 0.925 (+100 gradient steps)
+state 1 gaussian: optimum 0.547 (projections) -> 0.914 (+100 gradient steps)
+state 1 LG01: optimum 0.152 (projections) -> 0.749 (+100 gradient steps)
+state 2 gaussian: optimum 0.939 (projections) -> 0.979 (+100 gradient steps)
+state 2 LG01: optimum 0.747 (projections) -> 0.910 (+100 gradient steps)
+10/100: static mean gaussian: F0 0.668 resnet_all 0.944 resnet_cams 0.946 opt 0.972  LG01: F0 0.349 resnet_all 0.842 resnet_cams 0.838 opt 0.897
+20/100: static mean gaussian: F0 0.645 resnet_all 0.934 resnet_cams 0.935 opt 0.969  LG01: F0 0.332 resnet_all 0.827 resnet_cams 0.827 opt 0.890
+30/100: static mean gaussian: F0 0.689 resnet_all 0.938 resnet_cams 0.939 opt 0.972  LG01: F0 0.376 resnet_all 0.835 resnet_cams 0.839 opt 0.899
+40/100: static mean gaussian: F0 0.669 resnet_all 0.933 resnet_cams 0.934 opt 0.970  LG01: F0 0.347 resnet_all 0.818 resnet_cams 0.821 opt 0.892
+50/100: static mean gaussian: F0 0.668 resnet_all 0.935 resnet_cams 0.935 opt 0.970  LG01: F0 0.350 resnet_all 0.820 resnet_cams 0.824 opt 0.894
+60/100: static mean gaussian: F0 0.672 resnet_all 0.938 resnet_cams 0.938 opt 0.971  LG01: F0 0.356 resnet_all 0.827 resnet_cams 0.830 opt 0.897
+70/100: static mean gaussian: F0 0.662 resnet_all 0.935 resnet_cams 0.935 opt 0.969  LG01: F0 0.345 resnet_all 0.821 resnet_cams 0.823 opt 0.892
+80/100: static mean gaussian: F0 0.664 resnet_all 0.935 resnet_cams 0.936 opt 0.969  LG01: F0 0.346 resnet_all 0.821 resnet_cams 0.824 opt 0.892
+90/100: static mean gaussian: F0 0.656 resnet_all 0.932 resnet_cams 0.933 opt 0.967  LG01: F0 0.341 resnet_all 0.817 resnet_cams 0.818 opt 0.889
+100/100: static mean gaussian: F0 0.652 resnet_all 0.932 resnet_cams 0.932 opt 0.966  LG01: F0 0.337 resnet_all 0.813 resnet_cams 0.815 opt 0.887
+# Neural-network pre-correction (Step 18)
+
+Fresh random disk states (100), true field fidelity through the real LCOS model, mean (10th percentile). Gaussian / LG01.
+
+| method | static | temp_noise | temp_drift | cam_noise |
+|---|---|---|---|---|
+| uncorrected | 0.65 (0.38) / 0.34 (0.07) | 0.65 (0.38) / 0.34 (0.07) | 0.65 (0.36) / 0.34 (0.07) | 0.65 (0.38) / 0.34 (0.07) |
+| reference correction only (no network) | 0.70 (0.40) / 0.44 (0.09) | 0.70 (0.41) / 0.44 (0.09) | 0.70 (0.39) / 0.44 (0.08) | 0.70 (0.40) / 0.44 (0.09) |
+| network 'resnet_all' (resnet, residual, all; 1 shot) | 0.93 (0.89) / 0.81 (0.70) | 0.93 (0.89) / 0.81 (0.69) | 0.92 (0.88) / 0.81 (0.70) | 0.93 (0.88) / 0.81 (0.70) |
+| network 'resnet_cams' (resnet, residual, cams; 1 shot) | 0.93 (0.89) / 0.82 (0.70) | 0.93 (0.89) / 0.81 (0.68) | 0.92 (0.88) / 0.81 (0.68) | 0.92 (0.88) / 0.81 (0.68) |
+| physics optimum (projections + gradient ascent, phase-only, LCOS) | 0.97 (0.94) / 0.89 (0.81) | 0.97 (0.93) / 0.89 (0.80) | 0.96 (0.93) / 0.88 (0.80) | 0.97 (0.94) / 0.89 (0.81) |
+| response matrix (Step 16, ~240 frames) | 0.80 / 0.59 | | | |
+| SPGD (slides loop, ~390 frames) | 0.41 / 0.15 | | | |
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/18_nn

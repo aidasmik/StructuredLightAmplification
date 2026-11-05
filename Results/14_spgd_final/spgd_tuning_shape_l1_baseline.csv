@@ -1,0 +1,5 @@
+target,config,frames,metric_start,metric_best,F_start,F_best_pattern,F_max_seen,near_corr_best
+gaussian,shape_l1,401,nan,-inf,nan,0.4615531768633844,nan,0.0
+gaussian,baseline,401,0.0,0.0,0.4615531768633844,0.4615531594415966,0.4615531768633844,0.0
+LG01,shape_l1,401,nan,-inf,nan,0.2779450872626812,nan,0.0
+LG01,baseline,401,0.0,0.0,0.2779450872626812,0.2779450872626812,0.2779450910248562,0.0

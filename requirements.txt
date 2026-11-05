@@ -1,0 +1,4 @@
+numpy
+scipy
+matplotlib
+torch        # GPU amplifier, network training (CUDA build for the GPU steps)

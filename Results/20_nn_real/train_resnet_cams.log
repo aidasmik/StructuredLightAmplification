@@ -1,0 +1,5 @@
+204 shards, 40000 rows (20000 examples), cache /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/20_nn_real_dataset/cache
+train rows 38000, validation rows 2000; device cuda; resnet, residual, inputs cams
+label check: fidelity through reconstructed screens 0.496 vs stored optimum 0.498; reference correction alone 0.256, uncorrected 0.257
+resnet with 0.90 M parameters
+epoch   0 [sup] loss 0.2196  val fidelity gaussian 0.501  LG01 0.272  (843 s)

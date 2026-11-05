@@ -1,0 +1,27 @@
+system ready in 4 s; amplifier TorchAmplifier
+worker 0: 100/2500 examples, 4.98 s each; mean fidelity uncorrected 0.637/0.345, optimum 0.798/0.569
+worker 0: 200/2500 examples, 5.11 s each; mean fidelity uncorrected 0.698/0.388, optimum 0.845/0.608
+worker 0: 300/2500 examples, 5.13 s each; mean fidelity uncorrected 0.656/0.363, optimum 0.818/0.581
+worker 0: 400/2500 examples, 5.20 s each; mean fidelity uncorrected 0.609/0.314, optimum 0.784/0.545
+worker 0: 500/2500 examples, 5.27 s each; mean fidelity uncorrected 0.652/0.355, optimum 0.809/0.580
+worker 0: 600/2500 examples, 5.26 s each; mean fidelity uncorrected 0.648/0.350, optimum 0.820/0.579
+worker 0: 700/2500 examples, 5.22 s each; mean fidelity uncorrected 0.619/0.317, optimum 0.792/0.550
+worker 0: 800/2500 examples, 5.19 s each; mean fidelity uncorrected 0.630/0.338, optimum 0.795/0.566
+worker 0: 900/2500 examples, 5.21 s each; mean fidelity uncorrected 0.649/0.357, optimum 0.808/0.572
+worker 0: 1000/2500 examples, 5.19 s each; mean fidelity uncorrected 0.645/0.348, optimum 0.809/0.578
+worker 0: 1100/2500 examples, 5.20 s each; mean fidelity uncorrected 0.614/0.315, optimum 0.800/0.560
+worker 0: 1200/2500 examples, 5.20 s each; mean fidelity uncorrected 0.675/0.369, optimum 0.834/0.598
+worker 0: 1300/2500 examples, 5.21 s each; mean fidelity uncorrected 0.597/0.306, optimum 0.760/0.527
+worker 0: 1400/2500 examples, 5.22 s each; mean fidelity uncorrected 0.610/0.307, optimum 0.791/0.550
+worker 0: 1500/2500 examples, 5.20 s each; mean fidelity uncorrected 0.663/0.366, optimum 0.818/0.589
+worker 0: 1600/2500 examples, 5.18 s each; mean fidelity uncorrected 0.609/0.320, optimum 0.771/0.551
+worker 0: 1700/2500 examples, 5.15 s each; mean fidelity uncorrected 0.672/0.370, optimum 0.831/0.594
+worker 0: 1800/2500 examples, 5.13 s each; mean fidelity uncorrected 0.633/0.341, optimum 0.791/0.557
+worker 0: 1900/2500 examples, 5.11 s each; mean fidelity uncorrected 0.579/0.289, optimum 0.751/0.509
+worker 0: 2000/2500 examples, 5.09 s each; mean fidelity uncorrected 0.641/0.346, optimum 0.798/0.565
+worker 0: 2100/2500 examples, 5.07 s each; mean fidelity uncorrected 0.622/0.324, optimum 0.803/0.565
+worker 0: 2200/2500 examples, 5.06 s each; mean fidelity uncorrected 0.634/0.337, optimum 0.804/0.568
+worker 0: 2300/2500 examples, 5.04 s each; mean fidelity uncorrected 0.641/0.351, optimum 0.797/0.566
+worker 0: 2400/2500 examples, 5.03 s each; mean fidelity uncorrected 0.627/0.336, optimum 0.791/0.557
+worker 0: 2500/2500 examples, 5.02 s each; mean fidelity uncorrected 0.640/0.333, optimum 0.821/0.568
+done in 209.3 min

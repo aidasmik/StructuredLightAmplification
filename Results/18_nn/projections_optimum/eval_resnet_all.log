@@ -1,0 +1,23 @@
+10/100: static mean gaussian: F0 0.668 resnet_all 0.944 opt 0.860  LG01: F0 0.349 resnet_all 0.842 opt 0.597
+20/100: static mean gaussian: F0 0.645 resnet_all 0.934 opt 0.835  LG01: F0 0.332 resnet_all 0.827 opt 0.584
+30/100: static mean gaussian: F0 0.689 resnet_all 0.938 opt 0.857  LG01: F0 0.376 resnet_all 0.835 opt 0.616
+40/100: static mean gaussian: F0 0.669 resnet_all 0.933 opt 0.848  LG01: F0 0.347 resnet_all 0.818 opt 0.592
+50/100: static mean gaussian: F0 0.668 resnet_all 0.935 opt 0.850  LG01: F0 0.350 resnet_all 0.820 opt 0.599
+60/100: static mean gaussian: F0 0.672 resnet_all 0.938 opt 0.856  LG01: F0 0.356 resnet_all 0.827 opt 0.608
+70/100: static mean gaussian: F0 0.662 resnet_all 0.935 opt 0.845  LG01: F0 0.345 resnet_all 0.821 opt 0.594
+80/100: static mean gaussian: F0 0.664 resnet_all 0.935 opt 0.850  LG01: F0 0.346 resnet_all 0.821 opt 0.595
+90/100: static mean gaussian: F0 0.656 resnet_all 0.932 opt 0.840  LG01: F0 0.341 resnet_all 0.817 opt 0.588
+100/100: static mean gaussian: F0 0.652 resnet_all 0.932 opt 0.835  LG01: F0 0.337 resnet_all 0.813 opt 0.582
+# Neural-network pre-correction (Step 18)
+
+Fresh random disk states (100), true field fidelity through the real LCOS model, mean (10th percentile). Gaussian / LG01.
+
+| method | static | temp_noise | temp_drift | cam_noise |
+|---|---|---|---|---|
+| uncorrected | 0.65 (0.38) / 0.34 (0.07) | 0.65 (0.38) / 0.34 (0.07) | 0.65 (0.36) / 0.34 (0.07) | 0.65 (0.38) / 0.34 (0.07) |
+| reference correction only (no network) | 0.70 (0.40) / 0.44 (0.09) | 0.70 (0.41) / 0.44 (0.09) | 0.70 (0.39) / 0.44 (0.08) | 0.70 (0.40) / 0.44 (0.09) |
+| network 'resnet_all' (resnet, residual, all; 1 shot) | 0.93 (0.89) / 0.81 (0.70) | 0.93 (0.89) / 0.81 (0.69) | 0.92 (0.88) / 0.81 (0.70) | 0.93 (0.88) / 0.81 (0.70) |
+| physics optimum (phase-only, LCOS) | 0.84 (0.61) / 0.58 (0.35) | 0.84 (0.62) / 0.58 (0.34) | 0.82 (0.58) / 0.58 (0.34) | 0.84 (0.61) / 0.58 (0.35) |
+| response matrix (Step 16, ~240 frames) | 0.80 / 0.59 | | | |
+| SPGD (slides loop, ~390 frames) | 0.41 / 0.15 | | | |
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/18_nn
