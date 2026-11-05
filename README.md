@@ -49,13 +49,14 @@ small-signal gain per reflection:
 **Beam examples.** A Gaussian and an LG01 vortex through the amplifier without correction. The vortex
 phase is imprinted by the SLM and the ring forms on the way to the disk. On the nominal disk the
 output is close to the target; the random disk state shears and splits it after 10 passes
-(F = field fidelity with the target):
+(F = field fidelity with the target). The curves are the x (cyan) and y (green) intensity profiles
+through the beam centroid, each normalised to its peak; dashed: the target:
 
 ![Beam through the amplifier](Results/readme/beam_path.png)
 
 **One-shot correction.** The same disk state with the imperfections of a lab setup. The network sees
 the two camera images (left), puts one phase pattern on the SLM (middle) and the output is corrected
-without iteration:
+without iteration (output profiles as above, dashed = target):
 
 ![One-shot network correction](Results/readme/correction.png)
 

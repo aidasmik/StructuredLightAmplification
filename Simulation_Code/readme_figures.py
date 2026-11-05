@@ -45,9 +45,25 @@ def crop_ext(a, half=4e-3):
     return a[c - k:c + k, c - k:c + k], [-half * MM, half * MM, -half * MM, half * MM]
 
 
-def show(ax, I, title, cmap="inferno", half=4e-3, **kw):
+def show(ax, I, title, cmap="inferno", half=4e-3, profiles=False, ref=None, **kw):
+    """Map of I (+-half). profiles: overlay the x and y intensity profiles through the beam
+    centroid, as a beam profiler shows them (x profile along the bottom, y profile along the
+    left edge, each normalised to its peak); ref: a second intensity (the target) drawn dashed
+    along the same lines."""
     img, e = crop_ext(I, half)
     im = ax.imshow(img, extent=e, origin="lower", cmap=cmap, **kw)
+    if profiles:
+        n = img.shape[0]
+        x = np.linspace(e[0], e[1], n)
+        w = img / img.sum()
+        cy = int(round((w.sum(axis=1) * np.arange(n)).sum())); cx = int(round((w.sum(axis=0) * np.arange(n)).sum()))
+        h = 0.35 * (e[1] - e[0])                                       # profile height: 35 % of the panel
+        for a, style, alpha in ((img, "-", 1.0),) + (((crop_ext(ref, half)[0], "--", 0.8),) if ref is not None else ()):
+            px, py = a[cy, :], a[:, cx]
+            ax.plot(x, e[2] + h * px / (px.max() + 1e-30), style, color="cyan", lw=1.0, alpha=alpha)
+            ax.plot(e[0] + h * py / (py.max() + 1e-30), x, style, color="lime", lw=1.0, alpha=alpha)
+        ax.axhline(x[cy], color="cyan", lw=0.4, alpha=0.5); ax.axvline(x[cx], color="lime", lw=0.4, alpha=0.5)
+        ax.set_xlim(e[0], e[1]); ax.set_ylim(e[2], e[3])
     ax.set_title(title, fontsize=9); ax.set_xticks([]); ax.set_yticks([])
     return im
 
@@ -90,20 +106,22 @@ def trace_snapshots(pattern, state):
 
 passes = (0, 2, 5, 9)
 rows = [("Gaussian", slm.flat(), "gaussian"), ("LG01 vortex", slm.vortex(1), "LG01")]
-fig, ax = plt.subplots(4, 7, figsize=(19, 11.5))
+fig, ax = plt.subplots(4, 7, figsize=(19, 12))
 r = 0
 for label, pat, tname in rows:
     for sname, state in (("nominal 300 W disk", st0), (f"random state, {p['P']:.0f} W", st)):
         b_slm, disk, out = trace_snapshots(pat, state)
         F = co.fidelity(out.field, sysm.targets[tname])
-        show(ax[r, 0], np.abs(b_slm.field) ** 2, f"{label}, {sname}\nafter the SLM")
+        show(ax[r, 0], np.abs(b_slm.field) ** 2, f"{label}, {sname}\nafter the SLM", profiles=True)
         for j, k in enumerate(passes):
-            show(ax[r, 1 + j], np.abs(disk[k].field) ** 2, f"on the disk, pass {k + 1}")
-        show(ax[r, 5], np.abs(out.field) ** 2, f"output, F = {F:.2f}", half=5e-3)
-        show(ax[r, 6], np.abs(sysm.targets[tname]) ** 2, "target", half=5e-3)
+            show(ax[r, 1 + j], np.abs(disk[k].field) ** 2, f"on the disk, pass {k + 1}", profiles=True)
+        show(ax[r, 5], np.abs(out.field) ** 2, f"output, F = {F:.2f} (target dashed)", half=5e-3, profiles=True,
+             ref=np.abs(sysm.targets[tname]) ** 2)
+        show(ax[r, 6], np.abs(sysm.targets[tname]) ** 2, "target", half=5e-3, profiles=True)
         r += 1
-fig.suptitle("Beam through the 10-pass amplifier (uncorrected: flat / vortex pattern on the SLM); intensity, +-4 mm (output +-5 mm)")
-fig.tight_layout(); fig.savefig(os.path.join(OUT, "beam_path.png"), dpi=90); plt.close(fig)
+fig.suptitle("Beam through the 10-pass amplifier (uncorrected: flat / vortex pattern on the SLM); intensity, +-4 mm (output +-5 mm)\n"
+             "profiles through the beam centroid: x (cyan, bottom), y (green, left), each normalised to its peak; dashed: target")
+fig.tight_layout(h_pad=2.2); fig.savefig(os.path.join(OUT, "beam_path.png"), dpi=90); plt.close(fig)
 
 # ---- one-shot network correction (full lab model: setup 0 nuisances, gain, LCOS, cameras) ---
 name = sys.argv[1] if len(sys.argv) > 1 else "resnet_ft"
@@ -124,10 +142,11 @@ for t_id, tname in enumerate(nd.TARGETS):
     ax[t_id, 0].imshow(near, cmap="hot"); ax[t_id, 0].set_title(f"{tname}: near-field camera (input)", fontsize=9)
     ax[t_id, 1].imshow(far, cmap="hot"); ax[t_id, 1].set_title("far-field camera (input)", fontsize=9)
     ax[t_id, 2].imshow(corr, cmap="twilight", vmin=-np.pi, vmax=np.pi); ax[t_id, 2].set_title("network correction on the SLM", fontsize=9)
-    show(ax[t_id, 3], np.abs(out0) ** 2, f"output, uncorrected: F = {co.fidelity(out0, tgt):.2f}", half=4e-3)
-    show(ax[t_id, 4], np.abs(out1) ** 2, f"output, one-shot corrected: F = {co.fidelity(out1, tgt):.2f}", half=4e-3)
+    show(ax[t_id, 3], np.abs(out0) ** 2, f"output, uncorrected: F = {co.fidelity(out0, tgt):.2f}", half=4e-3, profiles=True, ref=np.abs(tgt) ** 2)
+    show(ax[t_id, 4], np.abs(out1) ** 2, f"output, one-shot corrected: F = {co.fidelity(out1, tgt):.2f}", half=4e-3, profiles=True, ref=np.abs(tgt) ** 2)
     for aa in ax[t_id, :3]:
         aa.set_xticks([]); aa.set_yticks([])
-fig.suptitle(f"One-shot correction by the network ('{name}', Step 21) with gain, seed / mirror / SLM / camera errors of the setup")
+fig.suptitle(f"One-shot correction by the network ('{name}', Step 21) with gain, seed / mirror / SLM / camera errors of the setup\n"
+             "output profiles through the beam centroid: x (cyan), y (green), solid = output, dashed = target")
 fig.tight_layout(h_pad=2.5); fig.savefig(os.path.join(OUT, "correction.png"), dpi=90); plt.close(fig)
 print("saved", OUT)
