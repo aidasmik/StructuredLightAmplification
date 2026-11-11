@@ -12,8 +12,11 @@ the same tolerances incl. the LENS_TOL rejection) and both targets:
     (with NN_RANGE=real the fresh states carry the same nuisance layer as the training
     set: gain, seed aberrations, mirror tilts, SLM stroke error, camera misregistration)
     physics optimum  the ceiling: alternating projections (the label recipe) followed by
-                     gradient ascent on the fidelity through the differentiable amplifier
-                     with the true disk state (phase-only, through the same LCOS)
+                     gradient ascent on fidelity x power kept through the differentiable
+                     amplifier with the true disk state (phase-only, through the same LCOS)
+Score: fidelity x power kept (D). The field fidelity F is normalised by the output power, so a
+correction can score a high F by throwing light out of the disk aperture; power kept K = output
+power / output power with the reference correction (same disk), at most 1. The csv holds D, F, K.
 Scenarios:
     static           images and correction with the same disk
     temp_noise       pump power moves 1 % rms between the images and the correction
@@ -68,8 +71,14 @@ def load_model(name):
     return net, ck["args"]
 
 
-def refine_optimum(phys, pattern, rec, t_id, base, steps=100, lr=0.05):
-    """Gradient ascent (Adam) on the output fidelity through the differentiable amplifier with the
+def score(out, tgt, P_ref):
+    """Output field -> (fidelity x power kept, fidelity, power kept); P_ref: output power with the reference correction."""
+    F, K = co.fidelity(out, tgt), min(1.0, float(np.sum(np.abs(out) ** 2) / P_ref))
+    return F * K, F, K
+
+
+def refine_optimum(phys, pattern, rec, t_id, base, ref_corr, steps=100, lr=0.05):
+    """Gradient ascent (Adam) on fidelity x power kept through the differentiable amplifier with the
     true state (rec: what the shards store of it), started from the alternating-projection pattern
     (which stalls short of the optimum: the trained network beats it). The pattern is parametrised
     as (cos, sin) at 50 um and upsampled x2 like the network head: pixel-level (25 um) structure
@@ -83,8 +92,8 @@ def refine_optimum(phys, pattern, rec, t_id, base, steps=100, lr=0.05):
     opt = torch.optim.Adam([y], lr=lr)
     tgt = torch.as_tensor([t_id], device=nt.DEV)
     for _ in range(steps):
-        F = phys.fidelity(nt.to_phase(y), st, tgt).sum()
-        opt.zero_grad(); (-F).backward(); opt.step()
+        D = phys.delivered(nt.to_phase(y), st, tgt, ref_corr[None])[0].sum()
+        opt.zero_grad(); (-D).backward(); opt.step()
     return base + np.pad(nt.to_phase(y.detach())[0].cpu().numpy(), pad)
 
 
@@ -143,7 +152,8 @@ def main():
         for t_id, name in enumerate(nd.TARGETS):
             tgt = sysm.targets[name]
             pat_gs, _ = sysm.optimum(name, st, p)                            # label recipe (12 alternating projections)
-            pat_opt = refine_optimum(phys, pat_gs, sysm.record(st, p), t_id, sysm.base[name], args.opt_steps) if args.opt_steps else pat_gs
+            pat_opt = refine_optimum(phys, pat_gs, sysm.record(st, p), t_id, sysm.base[name], ref["corr"][setup, t_id], args.opt_steps) if args.opt_steps else pat_gs
+            pat_ref = sysm.base[name] + np.pad(ref["corr"][setup, t_id].cpu().numpy(), pad)
             if i < 3:
                 print(f"state {i} {name}: optimum {co.fidelity(sysm.output(pat_gs, st, p), tgt):.3f} (projections) -> "
                       f"{co.fidelity(sysm.output(pat_opt, st, p), tgt):.3f} (+{args.opt_steps} gradient steps)", flush=True)
@@ -154,9 +164,11 @@ def main():
                 out0 = sysm.output(sysm.base[name], st, p)                   # images taken now
                 sysm.near_cam.noise = sysm.far_cam.noise = s["cam"]
                 near, far = sysm.frames(out0, p)
-                row = dict(index=i, target=name, scenario=sc, P=p["P"], lens_change=p["lens_change"], F0=co.fidelity(sysm.output(sysm.base[name], st2, p2), tgt),
-                           Fref=co.fidelity(sysm.output(sysm.base[name] + np.pad(ref["corr"][setup, t_id].cpu().numpy(), pad), st2, p2), tgt),
-                           Fopt=co.fidelity(sysm.output(pat_opt, st2, p2), tgt))
+                out_ref = sysm.output(pat_ref, st2, p2)
+                P_ref = np.sum(np.abs(out_ref) ** 2)                         # power reference of this disk state
+                row = dict(index=i, target=name, scenario=sc, P=p["P"], lens_change=p["lens_change"])
+                for m, o in (("0", sysm.output(sysm.base[name], st2, p2)), ("ref", out_ref), ("opt", sysm.output(pat_opt, st2, p2))):
+                    row[f"D{m}"], row[f"F{m}"], row[f"K{m}"] = score(o, tgt, P_ref)
                 if sc == "static":
                     row["Fopt_fine"] = fine.fidelity(pat_opt, st, p, name)
                 for mname, (net, a) in nets.items():
@@ -166,7 +178,7 @@ def main():
                         corr = nt.full_correction(net(x), tgt_t, ref, a["formulation"], [setup])[0].cpu().numpy()
                     pattern = sysm.base[name] + np.pad(corr, pad)
                     out = sysm.output(pattern, st2, p2)
-                    row[f"F_{mname}"] = co.fidelity(out, tgt)
+                    row[f"D_{mname}"], row[f"F_{mname}"], row[f"K_{mname}"] = score(out, tgt, P_ref)
                     if sc == "static":
                         row[f"F_{mname}_fine"] = fine.fidelity(pattern, st, p, name)
                     if sc == "static" and i < 2:
@@ -174,39 +186,37 @@ def main():
                 rows.append(row)
         if i % 10 == 9:
             st = [r for r in rows if r["scenario"] == "static"]
-            print(f"{i + 1}/{args.n_test}: static mean " + "  ".join(
-                f"{t}: F0 {np.mean([r['F0'] for r in st if r['target'] == t]):.3f} "
-                + " ".join(f"{m} {np.mean([r[f'F_{m}'] for r in st if r['target'] == t]):.3f}" for m in nets)
-                + f" opt {np.mean([r['Fopt'] for r in st if r['target'] == t]):.3f}" for t in nd.TARGETS), flush=True)
+            print(f"{i + 1}/{args.n_test}: static mean fidelity x power kept " + "  ".join(
+                f"{t}: uncorrected {np.mean([r['D0'] for r in st if r['target'] == t]):.3f} "
+                + " ".join(f"{m} {np.mean([r[f'D_{m}'] for r in st if r['target'] == t]):.3f}" for m in nets)
+                + f" opt {np.mean([r['Dopt'] for r in st if r['target'] == t]):.3f}" for t in nd.TARGETS), flush=True)
 
     tag = "_".join(args.names)
     with open(os.path.join(RESULTS, f"eval_{tag}.csv"), "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]), extrasaction="ignore"); w.writeheader(); w.writerows(rows)
 
     # ---- table ---------------------------------------------------------------
-    methods = ["F0", "Fref"] + [f"F_{m}" for m in nets] + ["Fopt"]
-    labels = {"F0": "uncorrected", "Fref": "reference correction only (no network)", "Fopt": "physics optimum (projections + gradient ascent, phase-only, LCOS)",
-              **{f"F_{m}": f"network '{m}' ({a['arch']}, {a['formulation']}, {a['inputs']}; 1 shot)" for m, (_, a) in nets.items()}}
+    methods = ["D0", "Dref"] + [f"D_{m}" for m in nets] + ["Dopt"]                      # F... and K... columns: same keys
+    labels = {"D0": "uncorrected", "Dref": "reference correction only (no network)", "Dopt": "physics optimum (projections + gradient ascent, phase-only, LCOS)",
+              **{f"D_{m}": f"network '{m}' ({a['arch']}, {a['formulation']}, {a['inputs']}; 1 shot)" for m, (_, a) in nets.items()}}
     lines = ["# Neural-network pre-correction (Step 18)", "",
-             f"Fresh random disk states ({args.n_test}), true field fidelity through the real LCOS model, mean (10th percentile). Gaussian / LG01.", "",
+             f"Fresh random disk states ({args.n_test}), real LCOS model. Cell: fidelity x power kept, mean (fidelity / power kept). Gaussian / LG01.",
+             "Power kept: output power / output power with the reference correction on the same disk, at most 1.", "",
              "| method | " + " | ".join(SCENARIOS) + " |", "|---|" + "---|" * len(SCENARIOS)]
     for m in methods:
         cells = []
         for sc in SCENARIOS:
             v = []
             for t in nd.TARGETS:
-                f = np.array([r[m] for r in rows if r["scenario"] == sc and r["target"] == t])
-                v.append(f"{f.mean():.2f} ({np.percentile(f, 10):.2f})")
+                d, f, k = (np.mean([r[c + m[1:]] for r in rows if r["scenario"] == sc and r["target"] == t]) for c in "DFK")
+                v.append(f"{d:.2f} ({f:.2f} / {k:.2f})")
             cells.append(" / ".join(v))
         lines.append(f"| {labels[m]} | " + " | ".join(cells) + " |")
-    for m in [f"F_{m}" for m in nets] + ["Fopt"]:                      # the static scenario scored on the 12.5 um grid
-        v = []
-        for t in nd.TARGETS:
-            f = np.array([r[f"{m}_fine"] for r in rows if r["scenario"] == "static" and r["target"] == t])
-            v.append(f"{f.mean():.2f} ({np.percentile(f, 10):.2f})")
-        lines.append(f"| {labels[m]}, scored on the 12.5 um grid | " + " / ".join(v) + " | | | |")
+    for m in [f"D_{m}" for m in nets] + ["Dopt"]:                      # the static scenario scored on the 12.5 um grid
+        v = [f"{np.mean([r['F' + m[1:] + '_fine'] for r in rows if r['scenario'] == 'static' and r['target'] == t]):.2f}" for t in nd.TARGETS]
+        lines.append(f"| {labels[m]}, fidelity only, 12.5 um grid | " + " / ".join(v) + " | | | |")
     for k, v in REFERENCE.items():
-        lines.append(f"| {k} | {v[0]:.2f} / {v[1]:.2f} | | | |")
+        lines.append(f"| {k}, fidelity only | {v[0]:.2f} / {v[1]:.2f} | | | |")
     with open(os.path.join(RESULTS, "NN_EVAL.md"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
     print("\n".join(lines))
@@ -219,8 +229,8 @@ def main():
             means = [np.mean([r[m] for r in rows if r["scenario"] == sc and r["target"] == t]) for sc in SCENARIOS]
             ax[j].bar(xs + (k - len(methods) / 2 + 0.5) * 0.8 / len(methods), means, 0.8 / len(methods), label=labels[m])
         for k, (rn, rv) in enumerate(REFERENCE.items()):
-            ax[j].axhline(rv[j], color="k", ls=("--", ":")[k], lw=1, label=rn)
-        ax[j].set_xticks(xs); ax[j].set_xticklabels(SCENARIOS); ax[j].set_ylim(0, 1); ax[j].set_ylabel("field fidelity"); ax[j].set_title(t); ax[j].grid(alpha=0.3, axis="y")
+            ax[j].axhline(rv[j], color="k", ls=("--", ":")[k], lw=1, label=rn + ", fidelity only")
+        ax[j].set_xticks(xs); ax[j].set_xticklabels(SCENARIOS); ax[j].set_ylim(0, 1); ax[j].set_ylabel("fidelity x power kept"); ax[j].set_title(t); ax[j].grid(alpha=0.3, axis="y")
     ax[0].legend(fontsize=7)
     fig.suptitle("One-shot network correction vs iterative loops on fresh disk states")
     fig.tight_layout(); fig.savefig(os.path.join(RESULTS, "nn_eval.png"), dpi=110)
@@ -235,9 +245,9 @@ def main():
         for m in methods:
             f = np.array([r[m] for r in st])
             ax[j].plot(mid, [f[(P >= a) & (P < b)].mean() if ((P >= a) & (P < b)).any() else np.nan for a, b in zip(edges[:-1], edges[1:])], "o-", label=labels[m])
-        ax[j].set_xlabel("pump power [W]"); ax[j].set_ylabel("field fidelity"); ax[j].set_ylim(0, 1); ax[j].set_title(t); ax[j].grid(alpha=0.3)
+        ax[j].set_xlabel("pump power [W]"); ax[j].set_ylabel("fidelity x power kept"); ax[j].set_ylim(0, 1); ax[j].set_title(t); ax[j].grid(alpha=0.3)
     ax[0].legend(fontsize=7)
-    fig.suptitle("Fidelity over the pump range (relay tuned to 300 W), bin means of the fresh states")
+    fig.suptitle("Fidelity x power kept over the pump range (relay tuned to 300 W), bin means of the fresh states")
     fig.tight_layout(); fig.savefig(os.path.join(RESULTS, "nn_vs_power.png"), dpi=110)
 
     m0 = args.names[0]

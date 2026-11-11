@@ -12,3 +12,15 @@ Results/**/cache*/
 # editor / office lock files
 .~lock.*
 *.swp
+
+# private correspondence and its build files (not for the repository)
+docs/YbSLAM_letter.docx
+docs/letter_build/
+Results/email/
+
+# small curve files behind the README figures
+!Results/readme/iterations_curves.npz
+!Results/22_xie_spgd/*.npz
+!Results/23_nn_shapes/iter_*.npz
+Simulation_Code/email_figures.py
+Simulation_Code/email_iterative.py

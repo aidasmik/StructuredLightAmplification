@@ -1,0 +1,5 @@
+far-field Gaussian: rms radius 14.4 px = 0.36 mm
+train: 1536 holograms, design similarity 0.988, power kept 0.98 (per family spot 1.00 / 1.00, ring 0.96 / 0.96, flattop 0.99 / 0.99, spots 0.99 / 0.95, line 1.00 / 1.00), 4428 s
+test: 128 holograms, design similarity 0.987, power kept 0.98 (per family spot 1.00 / 1.00, ring 0.96 / 0.96, flattop 0.99 / 0.99, spots 0.99 / 0.94, line 1.00 / 1.00), 4845 s
+unseen: 48 holograms, design similarity 0.991, power kept 0.99 (per family letter 0.99 / 0.98, square 0.99 / 0.99), 5010 s
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/23_nn_shapes/bank_relay.npz

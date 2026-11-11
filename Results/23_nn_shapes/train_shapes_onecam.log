@@ -1,0 +1,17 @@
+20000 disk states from /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/19_nn_wide_dataset
+resnet width 64, layout as modelled: 0.90 M parameters; 19000 training states x 3072 shapes (bank_v2.npz)
+epoch  0 loss 0.2744  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.752  unseen 0.673 -> 0.755  named 0.644 -> 0.688  (1891 s)
+epoch  1 loss 0.2520  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.771  unseen 0.673 -> 0.784  named 0.644 -> 0.715  (1610 s)
+epoch  2 loss 0.2412  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.780  unseen 0.673 -> 0.794  named 0.644 -> 0.717  (1608 s)
+epoch  3 loss 0.2339  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.783  unseen 0.673 -> 0.804  named 0.644 -> 0.724  (1636 s)
+epoch  4 loss 0.2253  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.790  unseen 0.673 -> 0.808  named 0.644 -> 0.728  (1597 s)
+epoch  5 loss 0.2201  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.793  unseen 0.673 -> 0.811  named 0.644 -> 0.731  (1609 s)
+epoch  6 loss 0.2166  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.797  unseen 0.673 -> 0.815  named 0.644 -> 0.734  (1591 s)
+epoch  7 loss 0.2129  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.795  unseen 0.673 -> 0.811  named 0.644 -> 0.730  (1597 s)
+epoch  8 loss 0.2108  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.803  unseen 0.673 -> 0.823  named 0.644 -> 0.739  (1591 s)
+epoch  9 loss 0.2069  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.804  unseen 0.673 -> 0.823  named 0.644 -> 0.739  (1592 s)
+epoch 10 loss 0.2051  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.807  unseen 0.673 -> 0.825  named 0.644 -> 0.743  (1598 s)
+epoch 11 loss 0.2027  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.807  unseen 0.673 -> 0.825  named 0.644 -> 0.738  (1687 s)
+epoch 12 loss 0.2029  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.808  unseen 0.673 -> 0.826  named 0.644 -> 0.741  (1633 s)
+epoch 13 loss 0.2031  val intensity similarity x power kept, far-field camera only (uncorrected -> network): test 0.696 -> 0.808  unseen 0.673 -> 0.826  named 0.644 -> 0.740  (1700 s)
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/23_nn_shapes/shapes_onecam

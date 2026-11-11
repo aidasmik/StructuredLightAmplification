@@ -1,0 +1,19 @@
+Fri Nov  6 04:07:03 PM EET 2026 bank
+Fri Nov  6 05:21:35 PM EET 2026 training shapes_v1
+Fri Nov  6 11:36:15 PM EET 2026 evaluating
+Fri Nov  6 11:45:36 PM EET 2026 ALL DONE
+Sun Nov  8 03:12:28 PM EET 2026 extending the bank (v2)
+Sun Nov  8 03:13:24 PM EET 2026 extending the bank (v2)
+Sun Nov  8 04:05:55 PM EET 2026 training shapes_v2
+Mon Nov  9 04:01:19 AM EET 2026 evaluating shapes_v2
+Mon Nov  9 04:15:13 AM EET 2026 V2 ALL DONE
+Mon Nov  9 09:39:14 AM EET 2026 training shapes_v3 (disk plane)
+Mon Nov  9 10:50:06 AM EET 2026 v3 stopped by hand (fidelity loss rewards dumping light)
+Mon Nov  9 11:15:05 AM EET 2026 relay: bank
+Mon Nov  9 01:38:52 PM EET 2026 relay: training shapes_relay
+Mon Nov  9 08:28:03 PM EET 2026 relay: evaluating
+Mon Nov  9 08:42:33 PM EET 2026 RELAY ALL DONE
+Mon Nov  9 08:43:15 PM EET 2026 free: bank
+Mon Nov  9 10:52:33 PM EET 2026 free: training shapes_free
+Tue Nov 10 05:02:06 AM EET 2026 free: evaluating
+Tue Nov 10 05:16:02 AM EET 2026 FREE ALL DONE

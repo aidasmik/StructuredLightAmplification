@@ -1,0 +1,17 @@
+20000 disk states from /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/19_nn_wide_dataset
+resnet width 64: 0.90 M parameters; 19000 training states x 1536 shapes
+epoch  0 loss 0.6391  val fidelity (uncorrected -> network): test 0.333 -> 0.403  unseen 0.275 -> 0.323  named 0.404 -> 0.441  (1659 s)
+epoch  1 loss 0.5827  val fidelity (uncorrected -> network): test 0.333 -> 0.444  unseen 0.275 -> 0.352  named 0.404 -> 0.470  (1815 s)
+epoch  2 loss 0.5397  val fidelity (uncorrected -> network): test 0.333 -> 0.471  unseen 0.275 -> 0.370  named 0.404 -> 0.500  (1745 s)
+epoch  3 loss 0.5207  val fidelity (uncorrected -> network): test 0.333 -> 0.490  unseen 0.275 -> 0.382  named 0.404 -> 0.522  (1568 s)
+epoch  4 loss 0.5039  val fidelity (uncorrected -> network): test 0.333 -> 0.508  unseen 0.275 -> 0.386  named 0.404 -> 0.544  (1568 s)
+epoch  5 loss 0.4938  val fidelity (uncorrected -> network): test 0.333 -> 0.524  unseen 0.275 -> 0.389  named 0.404 -> 0.544  (1569 s)
+epoch  6 loss 0.4814  val fidelity (uncorrected -> network): test 0.333 -> 0.530  unseen 0.275 -> 0.392  named 0.404 -> 0.550  (1569 s)
+epoch  7 loss 0.4750  val fidelity (uncorrected -> network): test 0.333 -> 0.535  unseen 0.275 -> 0.398  named 0.404 -> 0.548  (1568 s)
+epoch  8 loss 0.4655  val fidelity (uncorrected -> network): test 0.333 -> 0.542  unseen 0.275 -> 0.404  named 0.404 -> 0.550  (1568 s)
+epoch  9 loss 0.4591  val fidelity (uncorrected -> network): test 0.333 -> 0.551  unseen 0.275 -> 0.413  named 0.404 -> 0.557  (1568 s)
+epoch 10 loss 0.4544  val fidelity (uncorrected -> network): test 0.333 -> 0.555  unseen 0.275 -> 0.414  named 0.404 -> 0.560  (1568 s)
+epoch 11 loss 0.4512  val fidelity (uncorrected -> network): test 0.333 -> 0.557  unseen 0.275 -> 0.418  named 0.404 -> 0.568  (1568 s)
+epoch 12 loss 0.4479  val fidelity (uncorrected -> network): test 0.333 -> 0.559  unseen 0.275 -> 0.419  named 0.404 -> 0.567  (1568 s)
+epoch 13 loss 0.4444  val fidelity (uncorrected -> network): test 0.333 -> 0.559  unseen 0.275 -> 0.420  named 0.404 -> 0.563  (1568 s)
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/23_nn_shapes/shapes_v1

@@ -1,0 +1,28 @@
+20000 disk states from /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/19_nn_wide_dataset
+test: done (232 rows)
+unseen: done (280 rows)
+named: done (312 rows)
+# One network for any shape (Step 23)
+
+Network 'shapes_v2'. Held-out disk states of the wide range (240-360 W, no lab nuisances), ideal SLM.
+Target = what the nominal system makes from the shape's base hologram. Field fidelity, mean (10th percentile).
+
+| shapes | family | n | uncorrected | network, one shot | ceiling (disk known) |
+|---|---|---|---|---|---|
+| test | blob | 26 | 0.16 (0.01) | 0.25 (0.01) | 0.82 (0.65) |
+| test | flattop | 26 | 0.35 (0.16) | 0.63 (0.43) | 0.89 (0.76) |
+| test | line | 25 | 0.25 (0.03) | 0.46 (0.15) | 0.82 (0.52) |
+| test | polygon | 26 | 0.35 (0.05) | 0.57 (0.19) | 0.89 (0.78) |
+| test | ring | 26 | 0.19 (0.02) | 0.42 (0.19) | 0.83 (0.70) |
+| test | spiral | 26 | 0.26 (0.03) | 0.40 (0.03) | 0.87 (0.69) |
+| test | spot | 26 | 0.52 (0.24) | 0.80 (0.65) | 0.91 (0.78) |
+| test | spots | 25 | 0.19 (0.03) | 0.31 (0.07) | 0.83 (0.66) |
+| test | strokes | 26 | 0.13 (0.02) | 0.25 (0.03) | 0.80 (0.59) |
+| test | all | 232 | 0.27 (0.02) | 0.46 (0.07) | 0.85 (0.67) |
+| unseen | letter | 24 | 0.15 (0.01) | 0.29 (0.09) | 0.81 (0.58) |
+| unseen | square | 24 | 0.40 (0.16) | 0.63 (0.42) | 0.89 (0.77) |
+| unseen | all | 48 | 0.27 (0.02) | 0.46 (0.11) | 0.85 (0.61) |
+| named | gaussian | 16 | 0.43 (0.15) | 0.78 (0.61) | 0.94 (0.86) |
+| named | vortex | 16 | 0.24 (0.04) | 0.51 (0.16) | 0.92 (0.84) |
+| named | all | 32 | 0.33 (0.07) | 0.65 (0.22) | 0.93 (0.85) |
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/23_nn_shapes

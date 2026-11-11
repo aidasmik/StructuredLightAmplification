@@ -1,0 +1,52 @@
+20000 disk states from /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/19_nn_wide_dataset
+layout free: Zernike radius 3.00 mm
+sweep paper   delta 0.01 eta    3: I 0.782 -> 0.774, D 0.406 -> 0.379  (35 s)
+sweep paper   delta 0.01 eta   10: I 0.782 -> 0.719, D 0.406 -> 0.313  (59 s)
+sweep paper   delta 0.01 eta   30: I 0.782 -> 0.696, D 0.406 -> 0.267  (83 s)
+sweep paper   delta 0.05 eta    3: I 0.782 -> 0.739, D 0.406 -> 0.323  (108 s)
+sweep paper   delta 0.05 eta   10: I 0.782 -> 0.659, D 0.406 -> 0.228  (132 s)
+sweep paper   delta 0.05 eta   30: I 0.782 -> 0.412, D 0.406 -> 0.125  (156 s)
+sweep paper   delta 0.15 eta    3: I 0.782 -> 0.657, D 0.406 -> 0.225  (181 s)
+sweep paper   delta 0.15 eta   10: I 0.782 -> 0.369, D 0.406 -> 0.097  (205 s)
+sweep paper   delta 0.15 eta   30: I 0.782 -> 0.147, D 0.406 -> 0.043  (230 s)
+sweep pearson delta 0.01 eta    3: I 0.782 -> 0.842, D 0.406 -> 0.432  (254 s)
+sweep pearson delta 0.01 eta   10: I 0.782 -> 0.810, D 0.406 -> 0.404  (278 s)
+sweep pearson delta 0.01 eta   30: I 0.782 -> 0.733, D 0.406 -> 0.353  (303 s)
+sweep pearson delta 0.05 eta    3: I 0.782 -> 0.827, D 0.406 -> 0.413  (327 s)
+sweep pearson delta 0.05 eta   10: I 0.782 -> 0.776, D 0.406 -> 0.339  (351 s)
+sweep pearson delta 0.05 eta   30: I 0.782 -> 0.263, D 0.406 -> 0.079  (376 s)
+sweep pearson delta 0.15 eta    3: I 0.782 -> 0.735, D 0.406 -> 0.282  (400 s)
+sweep pearson delta 0.15 eta   10: I 0.782 -> 0.320, D 0.406 -> 0.063  (425 s)
+sweep pearson delta 0.15 eta   30: I 0.782 -> 0.030, D 0.406 -> 0.003  (449 s)
+SPGD settings: signal 'pearson', delta 0.01, eta 3.0
+named 12/32  (10 min)
+named 24/32  (12 min)
+named 32/32  (14 min)
+test 12/36  (17 min)
+test 24/36  (19 min)
+test 36/36  (22 min)
+unseen 12/16  (25 min)
+unseen 16/16  (26 min)
+# Networks against the best iterative loops, like for like (Step 24, layout: SLM 2.9 m before the disk)
+
+Held-out disk states (240-360 W), 84 pairs of disk state and shape, means. SPGD: Xie et al. 2015, far-field camera, 14 Zernike terms, signal 'pearson', delta 0.01, eta 3.0 (best of a sweep). Response matrix: 28 Zernike modes, field measured exactly, 238 frames.
+
+## One camera: intensity similarity x power kept
+
+| target | n | uncorrected | SPGD, 200 frames | SPGD, 600 frames | network onecam | ceiling (disk known) |
+|---|---|---|---|---|---|---|
+| Gaussian | 16 | 0.64 | 0.74 | 0.75 | 0.73 | 0.79 |
+| LG01 vortex | 16 | 0.64 | 0.73 | 0.71 | 0.79 | 0.84 |
+| shapes | 36 | 0.67 | 0.75 | 0.75 | 0.81 | 0.90 |
+| shapes never seen | 16 | 0.73 | 0.81 | 0.80 | 0.85 | 0.91 |
+
+## Two cameras: field fidelity x power kept
+
+| target | n | uncorrected | SPGD, 200 frames | SPGD, 600 frames | response matrix, 238 frames | network free | ceiling (disk known) |
+|---|---|---|---|---|---|---|---|
+| Gaussian | 16 | 0.42 | 0.53 | 0.54 | 0.51 | 0.58 | 0.61 |
+| LG01 vortex | 16 | 0.25 | 0.31 | 0.31 | 0.34 | 0.37 | 0.50 |
+| shapes | 36 | 0.27 | 0.29 | 0.29 | 0.37 | 0.44 | 0.56 |
+| shapes never seen | 16 | 0.28 | 0.27 | 0.26 | 0.38 | 0.45 | 0.55 |
+
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/23_nn_shapes (26 min)

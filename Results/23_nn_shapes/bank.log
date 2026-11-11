@@ -1,0 +1,5 @@
+far-field Gaussian: rms radius 14.4 px = 0.36 mm
+train: 1536 holograms, design similarity 0.916, power kept 0.86 (per family spot 1.00 / 1.00, ring 0.90 / 0.72, flattop 0.95 / 0.97, spots 0.84 / 0.66, line 0.90 / 0.92), 3967 s
+test: 128 holograms, design similarity 0.916, power kept 0.85 (per family spot 1.00 / 1.00, ring 0.88 / 0.71, flattop 0.95 / 0.97, spots 0.83 / 0.64, line 0.92 / 0.91), 4296 s
+unseen: 48 holograms, design similarity 0.882, power kept 0.90 (per family letter 0.85 / 0.87, square 0.91 / 0.94), 4419 s
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/23_nn_shapes/bank.npz

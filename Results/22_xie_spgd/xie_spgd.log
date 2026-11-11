@@ -1,2 +1,65 @@
 --- gaussian: uncorrected fidelity 0.556
 delta 0.01 eta    3: C 0.444 -> 0.753, fidelity 0.556 -> 0.885 (best 0.885), 200 frames, 110 s
+delta 0.01 eta   10: C 0.443 -> 0.765, fidelity 0.556 -> 0.866 (best 0.869), 200 frames, 214 s
+delta 0.01 eta   30: C 0.443 -> 0.766, fidelity 0.556 -> 0.872 (best 0.875), 200 frames, 319 s
+delta 0.05 eta    3: C 0.442 -> 0.764, fidelity 0.556 -> 0.869 (best 0.876), 200 frames, 424 s
+delta 0.05 eta   10: C 0.444 -> 0.750, fidelity 0.556 -> 0.837 (best 0.867), 200 frames, 528 s
+delta 0.05 eta   30: C 0.443 -> 0.351, fidelity 0.556 -> 0.436 (best 0.646), 200 frames, 633 s
+delta 0.15 eta    3: C 0.441 -> 0.720, fidelity 0.556 -> 0.776 (best 0.851), 200 frames, 736 s
+delta 0.15 eta   10: C 0.443 -> 0.360, fidelity 0.556 -> 0.377 (best 0.588), 200 frames, 841 s
+delta 0.15 eta   30: C 0.442 -> 0.069, fidelity 0.556 -> 0.263 (best 0.556), 200 frames, 949 s
+best settings delta 0.01, eta 3.0; 300 iterations with both metrics
+paper   : C 0.442 -> 0.763, fidelity 0.556 -> 0.869 (best 0.883) after 600 frames
+pearson : C 0.820 -> 0.953, fidelity 0.556 -> 0.882 (best 0.882) after 600 frames
+--- LG01: uncorrected fidelity 0.421
+delta 0.01 eta    3: C 0.400 -> 0.632, fidelity 0.421 -> 0.708 (best 0.708), 200 frames, 1709 s
+delta 0.01 eta   10: C 0.400 -> 0.641, fidelity 0.421 -> 0.703 (best 0.705), 200 frames, 1813 s
+delta 0.01 eta   30: C 0.400 -> 0.641, fidelity 0.421 -> 0.703 (best 0.706), 200 frames, 1917 s
+delta 0.05 eta    3: C 0.400 -> 0.639, fidelity 0.421 -> 0.702 (best 0.706), 200 frames, 2022 s
+delta 0.05 eta   10: C 0.400 -> 0.613, fidelity 0.421 -> 0.650 (best 0.696), 200 frames, 2126 s
+delta 0.05 eta   30: C 0.400 -> 0.419, fidelity 0.421 -> 0.044 (best 0.479), 200 frames, 2231 s
+delta 0.15 eta    3: C 0.399 -> 0.580, fidelity 0.421 -> 0.563 (best 0.669), 200 frames, 2336 s
+delta 0.15 eta   10: C 0.401 -> 0.388, fidelity 0.421 -> 0.149 (best 0.473), 200 frames, 2440 s
+delta 0.15 eta   30: C 0.399 -> 0.152, fidelity 0.421 -> 0.020 (best 0.421), 200 frames, 2545 s
+best settings delta 0.01, eta 3.0; 300 iterations with both metrics
+paper   : C 0.399 -> 0.641, fidelity 0.421 -> 0.708 (best 0.709) after 600 frames
+pearson : C 0.710 -> 0.861, fidelity 0.421 -> 0.656 (best 0.680) after 600 frames
+# SPGD as in Xie et al. 2015 (Step 22)
+
+Disk state of Steps 14/16 (300 W, hot spots, nominal shape error), far-field camera, 14 Zernike terms,
+one-sided update a += eta s (C2 - C1), two frames per iteration. C = the loop's own feedback signal
+(paper: far-field intensity overlap with the ideal mode, normalised; pearson: image correlation of the
+slides). Fidelity = true field fidelity of the displayed pattern (mean of the last 5 iterations).
+
+| target | metric | delta | eta | iterations | frames | C start -> end | fidelity start -> end (best) |
+|---|---|---|---|---|---|---|---|
+| gaussian | paper | 0.01 | 3 | 100 | 200 | 0.444 -> 0.753 | 0.556 -> 0.885 (0.885) |
+| gaussian | paper | 0.01 | 10 | 100 | 200 | 0.443 -> 0.765 | 0.556 -> 0.866 (0.869) |
+| gaussian | paper | 0.01 | 30 | 100 | 200 | 0.443 -> 0.766 | 0.556 -> 0.872 (0.875) |
+| gaussian | paper | 0.05 | 3 | 100 | 200 | 0.442 -> 0.764 | 0.556 -> 0.869 (0.876) |
+| gaussian | paper | 0.05 | 10 | 100 | 200 | 0.444 -> 0.750 | 0.556 -> 0.837 (0.867) |
+| gaussian | paper | 0.05 | 30 | 100 | 200 | 0.443 -> 0.351 | 0.556 -> 0.436 (0.646) |
+| gaussian | paper | 0.15 | 3 | 100 | 200 | 0.441 -> 0.720 | 0.556 -> 0.776 (0.851) |
+| gaussian | paper | 0.15 | 10 | 100 | 200 | 0.443 -> 0.360 | 0.556 -> 0.377 (0.588) |
+| gaussian | paper | 0.15 | 30 | 100 | 200 | 0.442 -> 0.069 | 0.556 -> 0.263 (0.556) |
+| gaussian | paper | 0.01 | 3 | 300 | 600 | 0.442 -> 0.763 | 0.556 -> 0.869 (0.883) |
+| gaussian | pearson | 0.01 | 3 | 300 | 600 | 0.820 -> 0.953 | 0.556 -> 0.882 (0.882) |
+| LG01 | paper | 0.01 | 3 | 100 | 200 | 0.400 -> 0.632 | 0.421 -> 0.708 (0.708) |
+| LG01 | paper | 0.01 | 10 | 100 | 200 | 0.400 -> 0.641 | 0.421 -> 0.703 (0.705) |
+| LG01 | paper | 0.01 | 30 | 100 | 200 | 0.400 -> 0.641 | 0.421 -> 0.703 (0.706) |
+| LG01 | paper | 0.05 | 3 | 100 | 200 | 0.400 -> 0.639 | 0.421 -> 0.702 (0.706) |
+| LG01 | paper | 0.05 | 10 | 100 | 200 | 0.400 -> 0.613 | 0.421 -> 0.650 (0.696) |
+| LG01 | paper | 0.05 | 30 | 100 | 200 | 0.400 -> 0.419 | 0.421 -> 0.044 (0.479) |
+| LG01 | paper | 0.15 | 3 | 100 | 200 | 0.399 -> 0.580 | 0.421 -> 0.563 (0.669) |
+| LG01 | paper | 0.15 | 10 | 100 | 200 | 0.401 -> 0.388 | 0.421 -> 0.149 (0.473) |
+| LG01 | paper | 0.15 | 30 | 100 | 200 | 0.399 -> 0.152 | 0.421 -> 0.020 (0.421) |
+| LG01 | paper | 0.01 | 3 | 300 | 600 | 0.399 -> 0.641 | 0.421 -> 0.708 (0.709) |
+| LG01 | pearson | 0.01 | 3 | 300 | 600 | 0.710 -> 0.861 | 0.421 -> 0.656 (0.680) |
+
+Same state, other methods (Results/readme/iterations.csv):
+
+| target | SPGD slides (Step 14) | response matrix (Step 16) | network, 2 frames | ceiling |
+|---|---|---|---|---|
+| gaussian | 0.174 (377 frames) | 0.825 (240 frames) | 0.964 | 0.989 |
+| LG01 | 0.016 (380 frames) | 0.667 (238 frames) | 0.898 | 0.945 |
+saved /home/aidas/Desktop/ThinDiskLaser/Simulation/Simulation_Code/../Results/22_xie_spgd (53 min)

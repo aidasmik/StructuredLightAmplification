@@ -3,3 +3,6 @@ Tue Nov  3 11:43:41 PM EET 2026 generating 20000 examples
 Wed Nov  4 07:31:37 AM EET 2026 dataset complete: 204 shards
 Wed Nov  4 02:03:14 PM EET 2026 resnet_ft trained
 Wed Nov  4 02:33:17 PM EET 2026 ALL DONE
+Thu Nov  5 12:04:04 PM EET 2026 training resnet_v2 (width 128, reference images, no label term)
+Fri Nov  6 09:25:44 AM EET 2026 resnet_v2 trained
+Fri Nov  6 09:54:36 AM EET 2026 V2 DONE

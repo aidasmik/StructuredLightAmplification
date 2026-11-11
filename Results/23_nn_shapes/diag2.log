@@ -1,0 +1,26 @@
+20000 disk states from /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/19_nn_wide_dataset
+layer check, psi = 0 returns the hologram: fidelity 0.9999998807907104
+state 0: uncorrected 0.25, per shape 0.83; universal: fit shapes 0.64 -> other shapes 0.50; from the Gaussian 0.31 (Gaussian itself 0.44 -> 0.68)
+state 1: uncorrected 0.33, per shape 0.94; universal: fit shapes 0.80 -> other shapes 0.72; from the Gaussian 0.38 (Gaussian itself 0.69 -> 0.81)
+state 2: uncorrected 0.58, per shape 0.95; universal: fit shapes 0.91 -> other shapes 0.84; from the Gaussian 0.52 (Gaussian itself 0.71 -> 0.96)
+state 3: uncorrected 0.37, per shape 0.87; universal: fit shapes 0.78 -> other shapes 0.60; from the Gaussian 0.16 (Gaussian itself 0.71 -> 0.90)
+state 4: uncorrected 0.10, per shape 0.62; universal: fit shapes 0.51 -> other shapes 0.20; from the Gaussian 0.16 (Gaussian itself 0.16 -> 0.50)
+state 5: uncorrected 0.13, per shape 0.67; universal: fit shapes 0.56 -> other shapes 0.44; from the Gaussian 0.11 (Gaussian itself 0.42 -> 0.69)
+state 6: uncorrected 0.12, per shape 0.62; universal: fit shapes 0.52 -> other shapes 0.36; from the Gaussian 0.16 (Gaussian itself 0.18 -> 0.29)
+state 7: uncorrected 0.11, per shape 0.77; universal: fit shapes 0.71 -> other shapes 0.33; from the Gaussian 0.08 (Gaussian itself 0.82 -> 0.92)
+# Is the correction one phase map per disk state, at the disk plane? (Step 23 diagnostic 2)
+
+8 held-out disk states x 8 test shapes, disk known, 250 Adam steps on the disk-plane phase (32 x 32 map + tilt, defocus, astigmatism), field fidelity, mean.
+
+| family | n | uncorrected | per shape | universal, its fit shapes | universal, other shapes | from the Gaussian |
+|---|---|---|---|---|---|---|
+| blob | 9 | 0.10 | 0.76 | 0.66 | 0.39 | 0.09 |
+| flattop | 9 | 0.46 | 0.88 | 0.74 | 0.72 | 0.40 |
+| line | 9 | 0.25 | 0.81 | 0.67 | 0.56 | 0.22 |
+| polygon | 4 | 0.09 | 0.65 | 0.50 | 0.23 | 0.11 |
+| ring | 2 | 0.09 | 0.64 | 0.61 | 0.24 | 0.08 |
+| spiral | 7 | 0.18 | 0.73 | 0.70 | 0.46 | 0.16 |
+| spot | 7 | 0.63 | 0.91 | 0.68 | 0.79 | 0.71 |
+| spots | 10 | 0.18 | 0.80 | 0.77 | 0.42 | 0.10 |
+| strokes | 7 | 0.09 | 0.68 | 0.62 | 0.35 | 0.13 |
+| all | 64 | 0.25 | 0.78 | 0.68 | 0.50 | 0.23 |

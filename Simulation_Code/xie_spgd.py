@@ -145,6 +145,7 @@ def main():
             print(f"{metric:8s}: C {log[1, 1]:.3f} -> {np.nanmean(log[-5:, 1]):.3f}, fidelity {log[0, 2]:.3f} -> {log[-5:, 2].mean():.3f} "
                   f"(best {log[:, 2].max():.3f}) after {int(log[-1, 0])} frames", flush=True)
 
+    np.savez(os.path.join(OUT, "xie_curves.npz"), **{f"{n}_{m}": v for (n, m), v in curves.items()})   # columns: frames, C, fidelity
     with open(os.path.join(OUT, "xie_sweep.csv"), "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
 

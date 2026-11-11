@@ -13,7 +13,7 @@ error; relay tuned to the hot nominal disk). Everything with the current model (
                          gradient steps at 50 um)
 
 Usage:  NN_RANGE=narrow python iteration_curves.py
-Output: Results/readme/iterations.png, iterations.csv
+Output: Results/readme/iterations.png, iterations.csv, iterations_curves.npz (the curves)
 """
 import os
 import csv
@@ -81,13 +81,14 @@ for t_id, (name, tgt) in enumerate(plant.targets.items()):
     F_net = field_overlap(plant.output_nominal(sysm.base[name] + np.pad(corr, pad)), tgt)
     # ceiling
     pat, _ = sysm.optimum(name, state, p)
-    pat = ne.refine_optimum(phys, pat, sysm.record(state, p), t_id, sysm.base[name], 100)
+    pat = ne.refine_optimum(phys, pat, sysm.record(state, p), t_id, sysm.base[name], ref["corr"][0, t_id], 100)
     F_opt = field_overlap(plant.output_nominal(pat), tgt)
     print(f"network {F_net:.3f} (2 frames), ceiling {F_opt:.3f}", flush=True)
     rows.append(dict(target=name, F_uncorrected=log[0][2], F_spgd=log[-1][2], frames_spgd=log[-1][0], F_rm=F[-1], F_rm_best=F.max(),
                      frames_rm=rm.frames, F_network=F_net, frames_network=2, F_ceiling=F_opt))
     curves[(name, "net")], curves[(name, "opt")] = F_net, F_opt
 
+np.savez(os.path.join(OUT, "iterations_curves.npz"), **{f"{n}_{k}": v for (n, k), v in curves.items()})   # columns: frames, own metric, fidelity (spgd); frames, fidelity (rm)
 with open(os.path.join(OUT, "iterations.csv"), "w", newline="") as fh:
     w = csv.DictWriter(fh, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
 

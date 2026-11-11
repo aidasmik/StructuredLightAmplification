@@ -1,8 +1,10 @@
 # Thin-Disk Laser Simulation
 
 Physically detailed simulation of a Yb:YAG thin-disk 10-pass amplifier with an LCOS SLM in front,
-built to test whether the distortions of structured light (Gaussian and LG01 vortex) in the
-amplifier can be pre-corrected in **one shot** by a neural network, instead of an iterative loop.
+built to test whether the distortions of structured light (Gaussian, LG01 vortex and arbitrary
+shapes) in the amplifier can be pre-corrected in **one shot** by a neural network, instead of an
+iterative loop. The current comparison of the networks with iterative loops (SPGD, response matrix)
+is in [Networks against iterative loops](#networks-against-iterative-loops-steps-22-24-current-results).
 
 ```
 Simulation_Code/           Python source, one module per physical part / step (see Modules)
@@ -54,7 +56,8 @@ through the beam centroid, each normalised to its peak; dashed: the target:
 
 ![Beam through the amplifier](Results/readme/beam_path.png)
 
-**One-shot correction.** The same disk state with the imperfections of a lab setup. The network sees
+**One-shot correction (earlier network, Step 21).** This network was trained on the fidelity alone and
+loses output power, so the figure overstates the correction; see the current results below. The same disk state with the imperfections of a lab setup. The network sees
 the two camera images (left), puts one phase pattern on the SLM (middle) and the output is corrected
 without iteration (output profiles as above, dashed = target):
 
@@ -68,7 +71,217 @@ or y shows only partly:
 
 The figures are made by `Simulation_Code/readme_figures.py`.
 
-## Iterative correction vs. one-shot network
+## Networks against iterative loops (Steps 22-24, current results)
+
+**Question.** The amplifier distorts a shaped beam (thermal lens, hot spots, doping clusters, shape
+error of the disk). An SLM in front can pre-correct it. The usual way is an iterative loop that needs
+hundreds of camera frames; here a neural network gives the SLM pattern in **one shot**. This section
+compares the two on the same disk states, with the same cameras and the same scores. Everything is
+simulation; no data from a real amplifier has been used yet.
+
+### What is compared
+
+**Scores.** `T` = target field (what the undistorted amplifier makes from the hologram), `out` =
+output field of the distorted amplifier with the pattern under test.
+
+| cameras | score | formula |
+|---|---|---|
+| two (near + far field): the phase is determined | field fidelity × power kept (`D`) | `|<T,out>|² / (|T|² · max(|out|², |T|²))` |
+| one (far field): only the intensity is seen | intensity similarity × power kept (`I`) | `(Σ √(I·I_T))² / (P_T · max(P, P_T))` on the far-field intensities |
+
+The power term matters: the plain fidelity `|<T,out>|² / (|T|²|out|²)` is normalised by the output
+power, so a pattern that throws most of the light out of the disk aperture and keeps a small clean
+remainder scores well. Networks trained on it did exactly that (they kept 1-40 % of the power, see
+"Earlier results"). `I` ≥ `D` for the same beam and `I` is already ~0.65 without any correction, so
+the one-camera and two-camera numbers must not be compared with each other.
+
+**Iterative loops.** They see camera frames only (12 bit, 1 % noise).
+
+| loop | cameras | how it works | script |
+|---|---|---|---|
+| SPGD, read from slides | 1, near field | random ± perturbation of 20 Zernike coefficients, image correlation as the signal, accept-or-reverse step | `spgd.py`, `spgd_test.py` |
+| SPGD as published (Xie et al., Opt. Lett. 40, 1197 (2015)) | 1, far field | 14 Zernike terms, two frames per iteration, `a += η·s·(C₂ − C₁)`; signal `C` = far-field intensity overlap with the ideal mode (the paper's) or the image correlation | `xie_spgd.py`, `xie_corr_sweep.py` |
+| response matrix | 2 | poke 28 Zernike modes by ±ε (4 frames per mode), measure the change of the complex output field, ridge least squares on the residual, a few damped steps, one recalibration | `two_camera_correction.py` |
+
+**Networks.** A residual CNN (12 dilated full-resolution blocks, 0.9 M parameters, `nn_train.build`)
+that takes the target as images, so one network serves any shape (`nn_shapes.py`):
+
+- *input* (13 channels, 128 × 128): near- and far-field camera image of the distorted beam minus the
+  images of the target, five pyrometer temperatures and the pump power minus the reference, the doping
+  map, the target's own camera images, cos / sin of the base hologram. With `--one-camera` the two
+  near-field channels are empty;
+- *output*: a phase map (256 × 256 at 25 µm) added to the base hologram on the SLM;
+- *loss*: `1 − score`, computed through a differentiable copy of the amplifier (batched torch
+  angular-spectrum model, `gpu.py`); no labels are needed;
+- *training data*: 19 000 random disk states (240-360 W, hot spots, decentred pump, shape error,
+  doping clusters) × 3072 holograms of nine shape families (spot, ring, flat-top, spot array, line,
+  spiral, polygon, strokes, blob). Letters and squares are never shown in training ("never seen").
+  Camera frames are simulated on the GPU for every batch. 14 epochs × 3000 steps × 8 pairs, ~6.5 h on
+  an RTX 2080 SUPER.
+
+| network | cameras | layout | trained on |
+|---|---|---|---|
+| `shapes_onecam` | far field only | SLM 2.9 m before the disk | `I` |
+| `shapes_free` | near + far field | SLM 2.9 m before the disk | `D` |
+| `shapes_relay` | near + far field | SLM imaged onto the disk | `D` |
+
+**Layouts.** The setup has flat mirrors only between SLM and disk and its distances are not known to
+us; in the model the SLM is 2.9 m of free space before the disk. "SLM imaged onto the disk" is a
+what-if with an ideal 1:1 telescope (`--relay`).
+
+**Ceiling.** "Best possible" = best phase-only pattern with the true disk state known (Adam on the
+score through the differentiable amplifier, `nn_shapes.ceiling`).
+
+### Iterative loops on one disk state
+
+One disk state (300 W, hot spots, shape error), true field fidelity against camera frames. The
+fidelity is known only in the simulation; the loop sees its own signal.
+
+Published SPGD driven by the image correlation, plotted as in the slides (perturbation 0.05 rad,
+gain 10, the best of the sweep in `xie_corr_sweep.py`). The correlation rises from 0.71 to 0.90
+(vortex) and from 0.82 to 0.97 (Gaussian) within ~25 iterations and stays there, while the true
+fidelity ends at 0.44 and 0.61 (from 0.42 and 0.56): a far-field image can match while the phase
+does not.
+
+![Correlation against SPGD iterations](Results/readme/it_corr.png)
+
+The same loop with small steps (perturbation 0.01 rad, gain 3) is slower but the fidelity does
+improve: 0.56 → 0.88 (Gaussian) and 0.42 → 0.71 (vortex) in ~200 frames. Gains above ~10 diverge with
+larger perturbations (`Results/22_xie_spgd/XIE_SPGD.md`, `corr_sweep.log`).
+
+![Published SPGD, small steps](Results/readme/it_published.png)
+
+The variant read from the slides (near-field camera, accept-or-reverse) is unstable in this model:
+its signal stays high while the fidelity falls to 0.17 / 0.02. This is most likely a misreading of
+the method, not a statement about the original experiment.
+
+![SPGD as read from the slides](Results/readme/it_slides.png)
+
+Response matrix with two cameras (field retrieved from the two images by Gerchberg-Saxton): 0.82
+(Gaussian) and 0.67 (vortex) after ~240 frames, of which ~110 are calibration.
+
+![Response-matrix loop](Results/readme/it_matrix.png)
+
+### Like for like: 84 pairs of disk state and shape (Step 24)
+
+`nn_shapes_iter.py` runs every method on the same 84 pairs of held-out disk state and shape
+(16 Gaussian, 16 vortex, 36 shapes of the nine training families, 16 never-seen letters / squares)
+and scores them all the same way. The loops get their best case: for SPGD the perturbation, gain and
+signal are chosen by a sweep that uses the true score, and the response matrix is given the exact
+output field (no retrieval error, no noise). Ideal phase-only SLM for all methods. Means:
+
+**One camera, SLM 2.9 m before the disk** (intensity similarity × power kept):
+
+| target | uncorrected | SPGD, 200 frames | SPGD, 600 frames | network `shapes_onecam`, 1 frame | best possible |
+|---|---|---|---|---|---|
+| Gaussian | 0.64 | 0.74 | 0.75 | 0.73 | 0.79 |
+| LG01 vortex | 0.64 | 0.73 | 0.71 | 0.79 | 0.84 |
+| shapes | 0.67 | 0.75 | 0.75 | 0.81 | 0.90 |
+| shapes never seen | 0.73 | 0.81 | 0.80 | 0.85 | 0.91 |
+
+![One camera](Results/readme/cmp_one.png)
+
+**Two cameras, SLM 2.9 m before the disk** (field fidelity × power kept):
+
+| target | uncorrected | SPGD, 200 frames | SPGD, 600 frames | response matrix, 238 frames | network `shapes_free`, 2 frames | best possible |
+|---|---|---|---|---|---|---|
+| Gaussian | 0.42 | 0.53 | 0.54 | 0.51 | 0.58 | 0.61 |
+| LG01 vortex | 0.25 | 0.31 | 0.31 | 0.34 | 0.37 | 0.50 |
+| shapes | 0.27 | 0.29 | 0.29 | 0.37 | 0.44 | 0.56 |
+| shapes never seen | 0.28 | 0.27 | 0.26 | 0.38 | 0.45 | 0.55 |
+
+![Two cameras](Results/readme/cmp_two.png)
+
+**Two cameras, SLM imaged onto the disk** (field fidelity × power kept):
+
+| target | uncorrected | SPGD, 200 frames | SPGD, 600 frames | response matrix, 238 frames | network `shapes_relay`, 2 frames | best possible |
+|---|---|---|---|---|---|---|
+| Gaussian | 0.42 | 0.74 | 0.79 | 0.78 | 0.89 | 0.97 |
+| LG01 vortex | 0.46 | 0.90 | 0.90 | 0.80 | 0.94 | 0.99 |
+| shapes | 0.42 | 0.70 | 0.71 | 0.73 | 0.83 | 0.91 |
+| shapes never seen | 0.54 | 0.76 | 0.79 | 0.80 | 0.88 | 0.93 |
+
+![Two cameras, SLM imaged onto the disk](Results/readme/cmp_relay.png)
+
+What the tables say:
+
+- The one-shot network is ahead of the best loop in every row except the one-camera Gaussian, where
+  SPGD is level with it (0.74 against 0.73). More frames do not help SPGD (200 → 600).
+- With the SLM 2.9 m before the disk all methods are limited by the layout, not by the algorithm: the
+  distortion is a phase screen at the disk and a phase-only SLM far upstream cannot fully undo it
+  (ceiling 0.50-0.61).
+- With the SLM imaged onto the disk the same network reaches 0.83-0.94 and keeps 95-100 % of the power,
+  including shape families it never saw.
+- The one-camera score is lenient. The field fidelity of the one-camera network's beams stays near 0.3
+  for arbitrary shapes (`NN_SHAPES_shapes_onecam.md`); only two cameras control the phase.
+
+Full tables: `Results/23_nn_shapes/ITER_free.md`, `ITER_relay.md`; per-pair values in `iter_*.csv`;
+networks alone on more pairs in `NN_SHAPES_shapes_{onecam,free,relay}.md`.
+
+### The SLM-to-disk distance
+
+Best phase-only correction with the disk known against the distance (`nn_shapes_dist.py`, fidelity ×
+power kept, Gaussian / vortex / 6 shapes): 0 m 0.96 / 0.96 / 0.94, 0.5 m 0.85 / 0.83 / 0.83,
+1 m 0.78 / 0.71 / 0.79, 2 m 0.69 / 0.56 / 0.71, 2.91 m 0.65 / 0.49 / 0.60.
+
+![Limit against the SLM position](Results/23_nn_shapes/diag_distance.png)
+
+### Beam examples
+
+Intensity at the focus of the 1 m lens, one disk state per row: wanted shape, uncorrected, network
+(one shot), target.
+
+One camera (numbers: intensity similarity × power kept):
+
+![One-camera network](Results/readme/onecam.png)
+
+Two cameras, SLM 2.9 m before the disk (numbers: fidelity × power kept):
+
+![Two-camera network, free space](Results/readme/shapes_free_examples.png)
+
+Two cameras, SLM imaged onto the disk:
+
+![Two-camera network, imaged](Results/readme/shapes_relay_examples.png)
+
+### Limitations
+
+- Simulation only; scalar fields, no polarisation, no depolarisation loss.
+- The comparison of Step 24 uses an ideal phase-only SLM and no lab imperfections (seed aberrations,
+  mirror tilts, camera misalignment). The LCOS model and the imperfections exist in the code
+  (Steps 20-21) but are not yet part of the any-shape networks.
+- The loops use a Zernike basis (14 / 28 terms); a richer basis could do better on arbitrary shapes at
+  the cost of more frames.
+- The response matrix in Step 24 is given the exact field, which favours it.
+- Distances between SLM and disk in the real setup are unknown; the result depends strongly on them.
+
+### Reproduce
+
+All long runs need a CUDA GPU; `pipelines/` holds the shell scripts that ran them.
+```
+cd Simulation_Code
+# disk states (Step 19) and reference
+NN_RANGE=wide python nn_dataset.py reference && NN_RANGE=wide python nn_dataset.py 20000
+# hologram banks (add --relay for the imaged layout)
+NN_RANGE=wide python nn_shapes.py bank && NN_RANGE=wide python nn_shapes.py extend
+# networks (~6.5 h each) and their evaluation
+NN_RANGE=wide python nn_shapes.py train shapes_free   --bank bank_v2.npz
+NN_RANGE=wide python nn_shapes.py train shapes_onecam --bank bank_v2.npz --one-camera
+NN_RANGE=wide python nn_shapes.py train shapes_relay  --bank bank_v2_relay.npz --relay
+NN_RANGE=wide python nn_shapes.py eval shapes_free            # likewise shapes_onecam, shapes_relay
+# iterative loops on one disk state
+NN_RANGE=narrow python iteration_curves.py && python xie_spgd.py && python xie_corr_sweep.py
+# like-for-like comparison (~30 min per layout) and the figures of this section
+NN_RANGE=wide python nn_shapes_iter.py && NN_RANGE=wide python nn_shapes_iter.py --relay
+python comparison_figures.py
+```
+The trained networks are in `Results/23_nn_shapes/<name>/model.pt`; the hologram banks and datasets
+(`*.npz`, 0.3-10 GB) are regenerated by the commands above.
+
+## Earlier results (Steps 14-21): fidelity only, superseded
+
+The results below were scored on the plain field fidelity. The networks and "ceilings" of these steps
+gain part of their fidelity by throwing light away (see the warning further down), so their numbers
+overstate the correction and are kept for the record only. The iterative numbers are unaffected.
 
 ![Iterative correction vs one-shot network](docs/nn_vs_iterative.png)
 
@@ -79,6 +292,15 @@ matrix reaches 0.83 / 0.67 after ~240 frames; the network reaches 0.96 / 0.90 fr
 (ceiling 0.99 / 0.95), Gaussian / LG01:
 
 ![Fidelity against camera frames](Results/readme/iterations.png)
+
+The paper behind the slides (Xie et al., Opt. Lett. 40, 1197 (2015)) done faithfully on the same state
+(`xie_spgd.py`, Step 22: far-field camera, overlap of the far-field intensity with the ideal mode as the
+metric, 14 Zernike terms, one-sided update of all coefficients from two frames per iteration) does work:
+0.87 / 0.71 after ~200 frames (0.87 / 0.71 after 600), the best iterative result, still below the
+network's one shot (0.96 / 0.90) and limited by the 14-term basis. The slides' variant failed because of
+its near-field metric and accept-or-reverse rule, not because of SPGD itself. The paper's gain of 200
+belongs to its unnormalised metric; with the metric normalised, gains above ~10 diverge
+(`Results/22_xie_spgd/XIE_SPGD.md`, `xie_curves.png`).
 
 The schematic is drawn in LaTeX/TikZ (`docs/nn_vs_iterative.tex`):
 ```
@@ -103,6 +325,55 @@ frames (Step 14). The network uses two camera frames, five pyrometer points, the
 known doping map; the cameras carry the information (cameras only: within 0.01). Robust to 1 %
 pump noise, 2 % pump drift and 3 % camera noise (≤ 0.02). Open: the gap with lab nuisances
 (Step 21b running: wider network with the setup's reference images) and a sim-to-real test.
+
+**Warning (found 2026-11-09): the fidelities above are not power-aware.** The field fidelity is
+normalised by the output power, so a pattern that scatters most of the light out of the disk aperture
+and keeps a small clean remainder scores well. The networks and the "ceilings" (both optimised on the
+fidelity) do exactly that. Output power of the corrected beam relative to the uncorrected one, 12-24
+test states, Gaussian / LG01: narrow range 0.42 / 0.14, wide 0.17 / 0.00, Step 20 0.48 / 0.23,
+Step 21 `resnet_ft` 0.19 / 0.04, Step 21 `resnet_v2` 0.02 / 0.01 (the reference correction keeps the
+power). The numbers of Steps 18-21 and the figures in `Results/email/` therefore overstate the
+correction. `nn_train.py` / `nn_eval.py` now train and score on fidelity x power kept (power kept =
+output power / output power with the reference correction on the same disk, at most 1), but the
+networks of Steps 18-21 have not been retrained with it yet. The iterative loops (Steps 14-16, 22) optimise
+camera signals in absolute counts and are not expected to be affected (not re-checked).
+
+Step 23 (`nn_shapes.py`, wide range without lab nuisances, ideal SLM): one network for any shape, with
+the target given as an image and defined at the focus of the 1 m lens.
+- `shapes_v1` / `shapes_v2` (fidelity loss): 0.27 -> 0.46 on test shapes with a "ceiling" of 0.85, but
+  the network keeps 36 % of the power and the ceiling 3 %. More width and more shape families changed
+  nothing (`NN_SHAPES_shapes_v2.md`).
+- Why (`nn_shapes_diag.py`, `nn_shapes_diag2.py`): the SLM is 2.9 m of free space before the disk, so a
+  shaped beam is already spread over the disk there and the disk error acts on a different light
+  distribution for every shape. One correction per disk state, added at the SLM, fails on shapes it
+  was not fitted to (0.17 against 0.29 uncorrected); the Gaussian's best correction does not transfer
+  either (0.15). The disk error itself is one phase screen at the disk plane (predicts the distorted
+  output to 0.88), but undoing it from 2.9 m upstream needs amplitude control: 0.79 with amplitude
+  and phase, 0.56 phase-only.
+- With the SLM imaged onto the disk (`--relay`, ideal 1:1 telescope) one correction per disk state
+  serves all shapes: fitted on 8 shapes it gives 0.78 (fidelity x power kept) on other shapes, the
+  Gaussian's correction 0.80, against 0.37 uncorrected (one-off check, 8 states x 8 shapes).
+- Honest runs (power-aware hologram design and loss, width 64, 14 epochs; fidelity x power kept, held-out
+  disk states; `NN_SHAPES_shapes_relay.md`, `NN_SHAPES_shapes_free.md`). SLM imaged onto the disk
+  (`shapes_relay`): test shapes 0.46 -> 0.86 (ceiling 0.93), unseen letters / squares 0.46 -> 0.87 (0.94),
+  Gaussian 0.43 -> 0.89, vortex 0.46 -> 0.94 (0.98 / 0.99), power kept 0.95-1.00. Layout as modelled,
+  SLM 2.9 m before the disk (`shapes_free`): test shapes 0.28 -> 0.42 (ceiling 0.56), unseen 0.27 -> 0.44
+  (0.54), Gaussian 0.43 -> 0.62 (0.65), vortex 0.23 -> 0.37 (0.52). In the free-space layout the
+  phase-only ceiling itself is low, so the layout, not the network, is the limit. The old similarity-only
+  banks are kept as `bank_fidelity.npz`, `bank_v2_fidelity.npz`.
+- One camera (`nn_shapes.py ... --one-camera`, network `shapes_onecam`, `NN_SHAPES_shapes_onecam.md`): only the
+  far-field frame is given and the phase is not rated; score = intensity similarity x power kept,
+  (sum sqrt(I I_T))^2 / (P_T max(P, P_T)). SLM 2.9 m before the disk: test shapes 0.68 -> 0.80 (ceiling
+  0.88), unseen 0.68 -> 0.83 (0.90), Gaussian 0.64 -> 0.76 (0.82), vortex 0.66 -> 0.79 (0.89). This score
+  is lenient (0.65 with no correction) and not comparable to the two-camera numbers; the field fidelity
+  of these beams stays near 0.3.
+
+- SLM position (`nn_shapes_dist.py`, `DIAG_distance.md`, `diag_distance.png`): the slide of the setup shows flat
+  mirrors only between SLM and disk (no telescope) and no distances, so the free-space layout is the model
+  and the distance is a free parameter. Best phase-only correction (disk known, fidelity x power kept,
+  Gaussian / vortex / 6 shapes) against the SLM-to-disk distance: 0 m 0.96 / 0.96 / 0.94, 0.25 m 0.93 /
+  0.92 / 0.90, 0.5 m 0.85 / 0.83 / 0.83, 1 m 0.78 / 0.71 / 0.79, 2 m 0.69 / 0.56 / 0.71, 2.91 m 0.65 /
+  0.49 / 0.60. The limit falls steadily with the distance.
 
 ## Setup
 ```
@@ -264,8 +535,9 @@ The network steps need a CUDA GPU (developed on an RTX 2080 SUPER, 8 GB).
 - `nn_train.py` – Step 18: residual ResNet (12 dilated full-resolution blocks, 0.9 M parameters). Input =
   differences to the recorded reference state (two camera images, five temperatures, pump power) plus the
   doping map and a target flag; output = the change added to the reference correction (256×256 as cos/sin,
-  head initialised to zero). Supervised warm-up on the labels, then the physics loss 1 − fidelity through
-  the differentiable torch amplifier with each example's own disk state (`gpu.py` runs batched). The
+  head initialised to zero). Supervised warm-up on the labels, then the physics loss 1 − fidelity × power
+  kept through the differentiable torch amplifier with each example's own disk state (`gpu.py` runs
+  batched; fidelity alone lets the network throw light away, see the warning above). The
   physics loss lifts the network well above the labels (the projections stall). One shot, no iteration.
   `--inputs cams` trains from the two cameras alone; `--arch unet`, `--formulation direct` are ablations.
   With the `real` range the physics loss includes each example's gain map, seed beam, mirror tilts and
@@ -277,13 +549,25 @@ The network steps need a CUDA GPU (developed on an RTX 2080 SUPER, 8 GB).
   of RAM. `Results/<18_nn|19_nn_wide|20_nn_real|21_nn_setup>/<name>/` (`training.png`, `history.csv`,
   `model.pt`).
 - `iteration_curves.py` – fidelity against camera frames for SPGD, the response matrix and the network on one disk state.
+- `xie_spgd.py` – Step 22: the SPGD loop of Xie et al. 2015 as published (far field, intensity overlap, 14 terms,
+  one-sided update), delta/gain sweep and 300-iteration curves on the Step 14/16 state. `Results/22_xie_spgd/`.
+- `nn_shapes.py` – Step 23: one network for any shape (target as image). Hologram bank, training and evaluation
+  (`bank`, `extend`, `train`, `eval`; `--relay`: SLM imaged onto the disk). Power-aware loss (`delivered`). `Results/23_nn_shapes/`.
+- `nn_shapes_iter.py` – Step 24: networks against SPGD and the response matrix on the same pairs of disk state and
+  shape, both scores, both layouts (`ITER_free.md`, `ITER_relay.md`, `iter_*.csv`, `iter_*.npz`).
+- `xie_corr_sweep.py` – Step 22b: published SPGD with the image correlation as signal, perturbation / gain sweep (`corr_sweep.npz`).
+- `comparison_figures.py` – figures of the section "Networks against iterative loops" from the saved curves.
+- `nn_shapes_dist.py` – best phase-only correction against the SLM-to-disk distance (`DIAG_distance.md`).
+- `nn_shapes_diag.py`, `nn_shapes_diag2.py` – why the any-shape network stalled: correction resolution, one correction
+  per disk state at the SLM plane / at the disk plane (`DIAG_resolution.md`, `DIAG_disk_plane.md`; fidelity, not power-aware).
 - `readme_figures.py` – the figures of this README (layout, disk state, beam examples, one-shot correction).
 - `nn_eval.py` – Step 18: fresh disk states (same tolerances) through the exact plant (real LCOS model):
   uncorrected vs reference correction only vs one-shot network vs physics optimum (projections followed
   by gradient ascent with the true disk state), scenarios static / temperature noise / drift / camera
-  noise, compared with the Step 16 response matrix and SPGD; `nn_vs_power.png` shows the fidelity over
-  the pump range. `Results/<18_nn|19_nn_wide|20_nn_real>/NN_EVAL.md`, `nn_eval.png`, `nn_examples.png`.
-  Narrow range: network 0.93 / 0.81 vs ceiling 0.97 / 0.91 (Gaussian / vortex), response matrix 0.80 /
+  noise, compared with the Step 16 response matrix and SPGD; `nn_vs_power.png` shows the score over
+  the pump range. Score: fidelity × power kept; the csv also holds fidelity and power kept.
+  `Results/<18_nn|19_nn_wide|20_nn_real>/NN_EVAL.md`, `nn_eval.png`, `nn_examples.png`.
+  Old numbers (fidelity only, see the warning above). Narrow range: network 0.93 / 0.81 vs ceiling 0.97 / 0.91 (Gaussian / vortex), response matrix 0.80 /
   0.59. Wide range (240-360 W, relay tuned to 300 W): network 0.86 / 0.70 vs ceiling 0.87 / 0.76; the
   cameras-only network is within 0.01 of the full-input one in both ranges.
 - `doping.py` – Step 11: non-uniform Yb doping (clustered random field, ±2 %, 2-D depth-uniform or

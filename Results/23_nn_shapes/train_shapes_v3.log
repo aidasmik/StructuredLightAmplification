@@ -1,0 +1,3 @@
+20000 disk states from /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/19_nn_wide_dataset
+resnet width 64, output at the disk plane: 0.90 M parameters; 19000 training states x 3072 shapes (bank_v2.npz)
+epoch  0 loss 0.7329  val fidelity (uncorrected -> network): test 0.297 -> 0.308  unseen 0.255 -> 0.260  named 0.348 -> 0.373  (2437 s)

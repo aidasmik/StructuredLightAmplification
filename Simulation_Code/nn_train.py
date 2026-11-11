@@ -23,9 +23,12 @@ dilations 1,2,4,8 repeated, so the receptive field covers the whole image;
 
 Losses:  supervised  piston-free phase error against the physics-optimal label,
                      weighted with the seed intensity on the SLM,
-         physics     1 - fidelity of the output field with the target, through
-                     the differentiable torch amplifier with the example's own
-                     disk state (the true objective).
+         physics     1 - fidelity x power kept of the output field, through the
+                     differentiable torch amplifier with the example's own disk state.
+                     Fidelity alone is normalised by the output power, so a network
+                     trained on it throws light out of the disk aperture and keeps a
+                     small clean remainder (Step 23 finding). Power kept = output power
+                     / output power with the reference correction, at most 1.
 Schedule: EPOCHS_SUP supervised epochs, then EPOCHS_PHYS epochs physics + 0.1 supervised.
 
 Usage:  python nn_train.py NAME [--arch resnet|unet] [--formulation residual|direct]
@@ -275,9 +278,9 @@ class Physics:
         up = Fn.interpolate(crop[:, None].float(), scale_factor=2, mode="bilinear", align_corners=False)[:, 0]
         return Fn.pad(up, (self.pad,) * 4, value=outside)
 
-    def fidelity(self, corr, st, tgt):
+    def output(self, corr, st, tgt):
         """corr: (B, 256, 256) full phase correction; st: the stored state (state_tensors).
-        Output fidelity per example, ideal SLM apart from the stroke error."""
+        Output field per example, ideal SLM apart from the stroke error."""
         phi = self.base[tgt] + Fn.pad(corr, (self.pad,) * 4)
         fin = self.fin
         if "seed" in st:                                                             # this example's seed beam
@@ -293,10 +296,24 @@ class Physics:
             self.amp.set_gain(self.screens(st["gain"], 1.0))
         if "tilts" in st:
             self.amp.set_mirror_tilts(st["tilts"])
-        out = self.amp.forward_t(field)
-        t = self.targets[tgt]
-        num = (t.conj() * out).sum(dim=(-2, -1)).abs() ** 2
-        return num / ((out.abs() ** 2).sum(dim=(-2, -1)) * (t.abs() ** 2).sum(dim=(-2, -1)))
+        return self.amp.forward_t(field)
+
+    def fidelity(self, corr, st, tgt, with_power=False):
+        """Field fidelity |<T, out>|^2 / (|T|^2 |out|^2) per example; with_power: also the output power."""
+        out, t = self.output(corr, st, tgt), self.targets[tgt]
+        P = (out.abs() ** 2).sum(dim=(-2, -1))
+        F = (t.conj() * out).sum(dim=(-2, -1)).abs() ** 2 / (P * (t.abs() ** 2).sum(dim=(-2, -1)))
+        return (F, P) if with_power else F
+
+    def delivered(self, corr, st, tgt, ref_corr):
+        """Fidelity x power kept: the share of the available power that arrives in the target mode.
+        Power kept = P_out / P_out(reference correction, same disk state), at most 1.
+        Returns (delivered, fidelity, power kept) per example."""
+        F, P = self.fidelity(corr, st, tgt, with_power=True)
+        with torch.no_grad():
+            P_ref = self.fidelity(ref_corr, st, tgt, with_power=True)[1]
+        kept = torch.clamp(P / P_ref, max=1)
+        return F * kept, F, kept
 
     def supervised(self, corr, label):
         d = corr - label
@@ -367,25 +384,26 @@ def main():
             corr = full_correction(net(x), tgt, ref, args.formulation, setup)
             L_sup = phys.supervised(corr, label).mean()
             if physics_on:
-                loss = (1 - phys.fidelity(corr, st, tgt)).mean() + args.sup_weight * L_sup
+                loss = (1 - phys.delivered(corr, st, tgt, ref["corr"][setup, tgt])[0]).mean() + args.sup_weight * L_sup
             else:
                 loss = L_sup
             opt.zero_grad(); loss.backward(); opt.step(); sched.step()
             losses.append(loss.item())
-        # validation: ideal-SLM fidelity on held-out rows, per target
-        net.eval(); F = {t: [] for t in range(len(nd.TARGETS))}
+        # validation: ideal-SLM fidelity x power kept (D), fidelity (F) and power kept (K) on held-out rows, per target
+        net.eval(); V = {t: [] for t in range(len(nd.TARGETS))}
         with torch.no_grad():
             for s in range(0, min(len(val), 512), args.batch):
                 idx = val[s:s + args.batch]
                 x, label, st, tgt, setup = batch_tensors(data, idx, ref, args.inputs, args.formulation, args.ref_images)
-                f = phys.fidelity(full_correction(net(x), tgt, ref, args.formulation, setup), st, tgt).cpu().numpy()
-                for ti, fi in zip(tgt.cpu().numpy(), f):
-                    F[int(ti)].append(fi)
+                dfk = phys.delivered(full_correction(net(x), tgt, ref, args.formulation, setup), st, tgt, ref["corr"][setup, tgt])
+                for ti, v in zip(tgt.cpu().numpy(), torch.stack(dfk, dim=1).cpu().numpy()):
+                    V[int(ti)].append(v)
+        V = {t: np.mean(V[t], axis=0) for t in V}                       # per target: D, F, K
         row = dict(epoch=epoch, phase="phys" if physics_on else "sup", loss=float(np.mean(losses)),
-                   **{f"F_{nd.TARGETS[t]}": float(np.mean(F[t])) for t in F}, seconds=time.time() - t0)
+                   **{f"{k}_{nd.TARGETS[t]}": float(V[t][j]) for t in V for j, k in enumerate("DFK")}, seconds=time.time() - t0)
         history.append(row)
-        print(f"epoch {epoch:3d} [{row['phase']}] loss {row['loss']:.4f}  val fidelity "
-              + "  ".join(f"{nd.TARGETS[t]} {np.mean(F[t]):.3f}" for t in F) + f"  ({row['seconds']:.0f} s)", flush=True)
+        print(f"epoch {epoch:3d} [{row['phase']}] loss {row['loss']:.4f}  val fidelity x power kept (fidelity / power kept) "
+              + "  ".join(f"{nd.TARGETS[t]} {V[t][0]:.3f} ({V[t][1]:.3f} / {V[t][2]:.2f})" for t in V) + f"  ({row['seconds']:.0f} s)", flush=True)
         torch.save(dict(state=net.state_dict(), args=vars(args)), os.path.join(out_dir, "model.pt"))
 
     with open(os.path.join(out_dir, "history.csv"), "w", newline="") as fh:
@@ -396,10 +414,11 @@ def main():
     ax[0].plot([h["loss"] for h in history]); ax[0].set_xlabel("epoch"); ax[0].set_ylabel("training loss"); ax[0].grid(alpha=0.3)
     ax[0].axvline(args.epochs_sup - 0.5, color="k", ls=":", label="physics loss switched on"); ax[0].legend()
     for i, t in enumerate(nd.TARGETS):
-        ax[1].plot([h[f"F_{t}"] for h in history], color=f"C{i}", label=f"{t}: network")
-        ax[1].axhline(refF[t][1], color=f"C{i}", ls="--", label=f"{t}: physics optimum (label)")
-        ax[1].axhline(refF[t][0], color=f"C{i}", ls=":", label=f"{t}: uncorrected")
-    ax[1].set_xlabel("epoch"); ax[1].set_ylabel("validation fidelity (ideal SLM)"); ax[1].set_ylim(0, 1); ax[1].grid(alpha=0.3); ax[1].legend(fontsize=8)
+        ax[1].plot([h[f"D_{t}"] for h in history], color=f"C{i}", label=f"{t}: network, fidelity x power kept")
+        ax[1].plot([h[f"F_{t}"] for h in history], color=f"C{i}", lw=0.8, alpha=0.5, label=f"{t}: network, fidelity only")
+        ax[1].axhline(refF[t][1], color=f"C{i}", ls="--", label=f"{t}: label, fidelity only")
+        ax[1].axhline(refF[t][0], color=f"C{i}", ls=":", label=f"{t}: uncorrected, fidelity only")
+    ax[1].set_xlabel("epoch"); ax[1].set_ylabel("validation (ideal SLM)"); ax[1].set_ylim(0, 1); ax[1].grid(alpha=0.3); ax[1].legend(fontsize=8)
     fig.suptitle(f"Pre-correction network '{args.name}': {args.arch}, {args.formulation}, inputs {args.inputs}")
     fig.tight_layout(); fig.savefig(os.path.join(out_dir, "training.png"), dpi=110)
     print("saved", out_dir)

@@ -1,0 +1,3 @@
+train: 1536 new shapes, design similarity / power kept spiral 1.00 / 1.00, polygon 1.00 / 0.99, strokes 0.99 / 0.98, blob 0.99 / 0.97, 3363 s
+test: 104 new shapes, design similarity / power kept spiral 1.00 / 1.00, polygon 1.00 / 0.99, strokes 0.99 / 0.98, blob 0.99 / 0.97, 3578 s
+saved /home/aidas/ThinDiskLaser/Simulation/Simulation_Code/../Results/23_nn_shapes/bank_v2_relay.npz
