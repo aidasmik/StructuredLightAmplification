@@ -95,11 +95,12 @@ remainder scores well. Networks trained on it did exactly that (they kept 1-40 %
 "Earlier results"). `I` ≥ `D` for the same beam and `I` is already ~0.65 without any correction, so
 the one-camera and two-camera numbers must not be compared with each other.
 
-**Iterative loops.** SPGD in two variants; they see camera frames only (12 bit, 1 % noise).
+**Iterative loop.** The best iterative method found: SPGD as published, with one far-field camera. It
+sees camera frames only (12 bit, 1 % noise). (A variant read from the slides, with a near-field camera
+and accept-or-reverse steps, was unstable in this model and is not used; see Step 14.)
 
 | loop | cameras | how it works | script |
 |---|---|---|---|
-| SPGD, read from slides | 1, near field | random ± perturbation of 20 Zernike coefficients, image correlation as the signal, accept-or-reverse step | `spgd.py`, `spgd_test.py` |
 | SPGD as published (Xie et al., Opt. Lett. 40, 1197 (2015)) | 1, far field | 14 Zernike terms, two frames per iteration, `a += η·s·(C₂ − C₁)`; signal `C` = far-field intensity overlap with the ideal mode (the paper's) or the image correlation | `xie_spgd.py`, `xie_corr_sweep.py` |
 
 **Networks.** A residual CNN (12 dilated full-resolution blocks, 0.9 M parameters, `nn_train.build`)
@@ -131,7 +132,7 @@ what-if with an ideal 1:1 telescope (`--relay`).
 **Ceiling.** "Best possible" = best phase-only pattern with the true disk state known (Adam on the
 score through the differentiable amplifier, `nn_shapes.ceiling`).
 
-### Iterative loops on one disk state
+### SPGD on one disk state
 
 One disk state (300 W, hot spots, shape error), true field fidelity against camera frames. The
 fidelity is known only in the simulation; the loop sees its own signal.
@@ -149,12 +150,6 @@ improve: 0.56 → 0.88 (Gaussian) and 0.42 → 0.71 (vortex) in ~200 frames. Gai
 larger perturbations (`Results/22_xie_spgd/XIE_SPGD.md`, `corr_sweep.log`).
 
 ![Published SPGD, small steps](Results/readme/it_published.png)
-
-The variant read from the slides (near-field camera, accept-or-reverse) is unstable in this model:
-its signal stays high while the fidelity falls to 0.17 / 0.02. This is most likely a misreading of
-the method, not a statement about the original experiment.
-
-![SPGD as read from the slides](Results/readme/it_slides.png)
 
 ### Like for like: 84 pairs of disk state and shape (Step 24)
 

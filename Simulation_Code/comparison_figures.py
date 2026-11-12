@@ -2,7 +2,6 @@
 comparison_figures.py - figures of the README section "Networks against iterative loops".
 
 Reads the saved curves and tables (no simulation, runs anywhere with numpy + matplotlib):
-    Results/readme/iterations_curves.npz      iteration_curves.py   (slides SPGD, one disk state)
     Results/22_xie_spgd/xie_curves.npz        xie_spgd.py           (published SPGD, small steps)
     Results/22_xie_spgd/corr_sweep.npz        xie_corr_sweep.py     (published SPGD tuned for the correlation)
     Results/23_nn_shapes/iter_<layout>.npz/csv  nn_shapes_iter.py   (like-for-like comparison)
@@ -17,7 +16,6 @@ import matplotlib.pyplot as plt
 
 R = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Results")
 OUT = os.path.join(R, "readme")
-it = np.load(os.path.join(OUT, "iterations_curves.npz"))
 xie = np.load(os.path.join(R, "22_xie_spgd", "xie_curves.npz"))
 sweep = np.load(os.path.join(R, "22_xie_spgd", "corr_sweep.npz"))
 NAMES = {"gaussian": "Gaussian", "LG01": "LG01 vortex"}
@@ -38,12 +36,7 @@ def curve(a, c, color, label):                           # columns of c: frames,
     a.plot(c[:, 0], c[:, 1], color=color, lw=1.3, ls=":", label=label + ": the loop's own signal")
 
 
-# ---- one disk state: the two SPGD loops ----------------------------------------------------------------
-fig, ax = panels("One near-field camera: SPGD as read from the slides")
-for a, t in zip(ax, NAMES):
-    curve(a, it[t + "_spgd"], "#d62728", "loop")
-ax[1].legend(fontsize=8, loc="center right", bbox_to_anchor=(1, .58)); save(fig, "it_slides.png")
-
+# ---- one disk state: published SPGD ----------------------------------------------------------------
 fig, ax = panels("One far-field camera: published SPGD (Xie et al. 2015), small steps")
 for a, t in zip(ax, NAMES):
     curve(a, xie[t + "_paper"], "#1f77b4", "paper's signal")
