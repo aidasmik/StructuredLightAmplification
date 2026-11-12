@@ -17,6 +17,6 @@ Start them detached, e.g. `setsid nohup ./nn_pipeline_setup.sh > /dev/null 2>&1 
 | `nn_shapes_pipeline.sh`, `nn_shapes_v2.sh`, `nn_shapes_v3.sh` | 23 | any-shape network trained on the fidelity alone (superseded) |
 | `nn_shapes_relay.sh`, `nn_shapes_free.sh` | 23 | power-aware banks and two-camera networks, SLM imaged onto the disk / 2.9 m before it |
 | `nn_shapes_onecam.sh` | 23 | one-camera network (far field only) |
-| `nn_shapes_iter.sh` | 24 | networks against SPGD and the response matrix, both layouts |
+| `nn_shapes_iter.sh` | 24 | networks against the published SPGD, both layouts |
 
 A dataset of 20 000 examples takes ~6-8 h with 6 workers; a training run 6-15 h.

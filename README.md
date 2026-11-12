@@ -3,7 +3,7 @@
 Physically detailed simulation of a Yb:YAG thin-disk 10-pass amplifier with an LCOS SLM in front,
 built to test whether the distortions of structured light (Gaussian, LG01 vortex and arbitrary
 shapes) in the amplifier can be pre-corrected in **one shot** by a neural network, instead of an
-iterative loop. The current comparison of the networks with iterative loops (SPGD, response matrix)
+iterative loop. The current comparison of the networks with iterative loop (SPGD)
 is in [Networks against iterative loops](#networks-against-iterative-loops-steps-22-24-current-results).
 
 ```
@@ -95,13 +95,12 @@ remainder scores well. Networks trained on it did exactly that (they kept 1-40 %
 "Earlier results"). `I` ≥ `D` for the same beam and `I` is already ~0.65 without any correction, so
 the one-camera and two-camera numbers must not be compared with each other.
 
-**Iterative loops.** They see camera frames only (12 bit, 1 % noise).
+**Iterative loops.** SPGD in two variants; they see camera frames only (12 bit, 1 % noise).
 
 | loop | cameras | how it works | script |
 |---|---|---|---|
 | SPGD, read from slides | 1, near field | random ± perturbation of 20 Zernike coefficients, image correlation as the signal, accept-or-reverse step | `spgd.py`, `spgd_test.py` |
 | SPGD as published (Xie et al., Opt. Lett. 40, 1197 (2015)) | 1, far field | 14 Zernike terms, two frames per iteration, `a += η·s·(C₂ − C₁)`; signal `C` = far-field intensity overlap with the ideal mode (the paper's) or the image correlation | `xie_spgd.py`, `xie_corr_sweep.py` |
-| response matrix | 2 | poke 28 Zernike modes by ±ε (4 frames per mode), measure the change of the complex output field, ridge least squares on the residual, a few damped steps, one recalibration | `two_camera_correction.py` |
 
 **Networks.** A residual CNN (12 dilated full-resolution blocks, 0.9 M parameters, `nn_train.build`)
 that takes the target as images, so one network serves any shape (`nn_shapes.py`):
@@ -157,18 +156,13 @@ the method, not a statement about the original experiment.
 
 ![SPGD as read from the slides](Results/readme/it_slides.png)
 
-Response matrix with two cameras (field retrieved from the two images by Gerchberg-Saxton): 0.82
-(Gaussian) and 0.67 (vortex) after ~240 frames, of which ~110 are calibration.
-
-![Response-matrix loop](Results/readme/it_matrix.png)
-
 ### Like for like: 84 pairs of disk state and shape (Step 24)
 
 `nn_shapes_iter.py` runs every method on the same 84 pairs of held-out disk state and shape
 (16 Gaussian, 16 vortex, 36 shapes of the nine training families, 16 never-seen letters / squares)
-and scores them all the same way. The loops get their best case: for SPGD the perturbation, gain and
-signal are chosen by a sweep that uses the true score, and the response matrix is given the exact
-output field (no retrieval error, no noise). Ideal phase-only SLM for all methods. Means:
+and scores them all the same way. SPGD (as published, far-field camera) gets its best case: perturbation, gain and signal are chosen
+by a sweep that uses the true score. In the two-camera tables SPGD still uses its one camera; it is
+scored on the full field like the network. Ideal phase-only SLM for all methods. Means:
 
 **One camera, SLM 2.9 m before the disk** (intensity similarity × power kept):
 
@@ -183,29 +177,29 @@ output field (no retrieval error, no noise). Ideal phase-only SLM for all method
 
 **Two cameras, SLM 2.9 m before the disk** (field fidelity × power kept):
 
-| target | uncorrected | SPGD, 200 frames | SPGD, 600 frames | response matrix, 238 frames | network `shapes_free`, 2 frames | best possible |
-|---|---|---|---|---|---|---|
-| Gaussian | 0.42 | 0.53 | 0.54 | 0.51 | 0.58 | 0.61 |
-| LG01 vortex | 0.25 | 0.31 | 0.31 | 0.34 | 0.37 | 0.50 |
-| shapes | 0.27 | 0.29 | 0.29 | 0.37 | 0.44 | 0.56 |
-| shapes never seen | 0.28 | 0.27 | 0.26 | 0.38 | 0.45 | 0.55 |
+| target | uncorrected | SPGD, 200 frames | SPGD, 600 frames | network `shapes_free`, 2 frames | best possible |
+|---|---|---|---|---|---|
+| Gaussian | 0.42 | 0.53 | 0.54 | 0.58 | 0.61 |
+| LG01 vortex | 0.25 | 0.31 | 0.31 | 0.37 | 0.50 |
+| shapes | 0.27 | 0.29 | 0.29 | 0.44 | 0.56 |
+| shapes never seen | 0.28 | 0.27 | 0.26 | 0.45 | 0.55 |
 
 ![Two cameras](Results/readme/cmp_two.png)
 
 **Two cameras, SLM imaged onto the disk** (field fidelity × power kept):
 
-| target | uncorrected | SPGD, 200 frames | SPGD, 600 frames | response matrix, 238 frames | network `shapes_relay`, 2 frames | best possible |
-|---|---|---|---|---|---|---|
-| Gaussian | 0.42 | 0.74 | 0.79 | 0.78 | 0.89 | 0.97 |
-| LG01 vortex | 0.46 | 0.90 | 0.90 | 0.80 | 0.94 | 0.99 |
-| shapes | 0.42 | 0.70 | 0.71 | 0.73 | 0.83 | 0.91 |
-| shapes never seen | 0.54 | 0.76 | 0.79 | 0.80 | 0.88 | 0.93 |
+| target | uncorrected | SPGD, 200 frames | SPGD, 600 frames | network `shapes_relay`, 2 frames | best possible |
+|---|---|---|---|---|---|
+| Gaussian | 0.42 | 0.74 | 0.79 | 0.89 | 0.97 |
+| LG01 vortex | 0.46 | 0.90 | 0.90 | 0.94 | 0.99 |
+| shapes | 0.42 | 0.70 | 0.71 | 0.83 | 0.91 |
+| shapes never seen | 0.54 | 0.76 | 0.79 | 0.88 | 0.93 |
 
 ![Two cameras, SLM imaged onto the disk](Results/readme/cmp_relay.png)
 
 What the tables say:
 
-- The one-shot network is ahead of the best loop in every row except the one-camera Gaussian, where
+- The one-shot network is ahead of SPGD in every row except the one-camera Gaussian, where
   SPGD is level with it (0.74 against 0.73). More frames do not help SPGD (200 → 600).
 - With the SLM 2.9 m before the disk all methods are limited by the layout, not by the algorithm: the
   distortion is a phase screen at the disk and a phase-only SLM far upstream cannot fully undo it
@@ -249,9 +243,8 @@ Two cameras, SLM imaged onto the disk:
 - The comparison of Step 24 uses an ideal phase-only SLM and no lab imperfections (seed aberrations,
   mirror tilts, camera misalignment). The LCOS model and the imperfections exist in the code
   (Steps 20-21) but are not yet part of the any-shape networks.
-- The loops use a Zernike basis (14 / 28 terms); a richer basis could do better on arbitrary shapes at
+- SPGD uses a Zernike basis (14 terms); a richer basis could do better on arbitrary shapes at
   the cost of more frames.
-- The response matrix in Step 24 is given the exact field, which favours it.
 - Distances between SLM and disk in the real setup are unknown; the result depends strongly on them.
 
 ### Reproduce
@@ -553,7 +546,7 @@ The network steps need a CUDA GPU (developed on an RTX 2080 SUPER, 8 GB).
   one-sided update), delta/gain sweep and 300-iteration curves on the Step 14/16 state. `Results/22_xie_spgd/`.
 - `nn_shapes.py` – Step 23: one network for any shape (target as image). Hologram bank, training and evaluation
   (`bank`, `extend`, `train`, `eval`; `--relay`: SLM imaged onto the disk). Power-aware loss (`delivered`). `Results/23_nn_shapes/`.
-- `nn_shapes_iter.py` – Step 24: networks against SPGD and the response matrix on the same pairs of disk state and
+- `nn_shapes_iter.py` – Step 24: networks against the published SPGD on the same pairs of disk state and
   shape, both scores, both layouts (`ITER_free.md`, `ITER_relay.md`, `iter_*.csv`, `iter_*.npz`).
 - `xie_corr_sweep.py` – Step 22b: published SPGD with the image correlation as signal, perturbation / gain sweep (`corr_sweep.npz`).
 - `comparison_figures.py` – figures of the section "Networks against iterative loops" from the saved curves.
